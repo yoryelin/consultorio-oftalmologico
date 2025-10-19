@@ -1,0 +1,11 @@
+{% extends "gestion_clinica/form_base.html" %}
+
+{# Define el título que aparece en la pestaña del navegador #}
+{% block html_title %}
+    {% if object %}Editar Paciente: {{ object.nombre }} {{ object.apellido }}{% else %}Crear Nuevo Paciente{% endif %}
+{% endblock html_title %}
+
+{# Define el título que aparece dentro de la tarjeta del formulario #}
+{% block card_title %}
+    {% if object %}Editar Paciente: {{ object.nombre }} {{ object.apellido }}{% else %}Crear Nuevo Paciente{% endif %}
+{% endblock card_title %}

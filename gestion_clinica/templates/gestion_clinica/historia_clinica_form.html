@@ -1,0 +1,13 @@
+{% extends "gestion_clinica/form_base.html" %}
+
+{% block form_title %}
+    {% if object %}Editar Historia Clínica{% else %}Nueva Historia Clínica para {{ paciente.nombre }} {{ paciente.apellido }}{% endif %}
+{% endblock form_title %}
+
+{% block back_url %}
+    {% if object %}
+        {% url 'pacientes:detalle_paciente' pk=object.paciente.pk %}
+    {% else %}
+        {% url 'pacientes:detalle_paciente' paciente_pk %}
+    {% endif %}
+{% endblock back_url %}

@@ -1,0 +1,54 @@
+{% extends "gestion_clinica/base.html" %}
+
+{# 1. Bloque para el título de la pestaña (Tab del navegador). Debe ser único. #}
+{% block title %}{% block html_title %}Formulario{% endblock html_title %}{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                {# 2. Bloque para el título dentro del card. Debe ser único. #}
+                <h3 class="h5 mb-0">{% block card_title %}Formulario{% endblock card_title %}</h3>
+            </div>
+            <div class="card-body">
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Por favor corrige los siguientes errores:</strong>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{% block back_url %}{% url 'pacientes:lista_pacientes' %}{% endblock back_url %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
