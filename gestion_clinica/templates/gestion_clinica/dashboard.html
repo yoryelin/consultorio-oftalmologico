@@ -1,0 +1,85 @@
+{% extends "gestion_clinica/base.html" %}
+
+{% block title_heading %}Dashboard | Resumen General{% endblock title_heading %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Métricas del Sistema</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2 border-primary border-3">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Pacientes Registrados
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_pacientes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light border-primary border-3 border-top-0">
+                <a href="{% url 'pacientes:lista_pacientes' %}" class="small text-primary text-decoration-none">Ver todos los pacientes</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2 border-success border-3">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Consultas/Registros (Mes)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ consultas_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-notes-medical fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light border-success border-3 border-top-0">
+                <span class="small text-muted">Datos de prueba (Se actualizará con el módulo de Turnos)</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2 border-warning border-3">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Próximos Turnos (7 días)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ proximos_turnos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light border-warning border-3 border-top-0">
+                <span class="small text-muted">Datos de prueba (Se actualizará con el módulo de Turnos)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> ¡Bienvenido! Esta es la nueva página de inicio. Ahora puedes navegar usando el panel lateral.
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

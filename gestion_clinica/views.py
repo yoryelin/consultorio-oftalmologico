@@ -1,5 +1,8 @@
 from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, DetailView
+# ⭐ IMPORTACIÓN NECESARIA para la DashboardView simple ⭐
+from django.views import View
+from django.shortcuts import render
 from django.views.generic.edit import CreateView, UpdateView
 # ⭐ IMPORTACIÓN NECESARIA PARA LA BÚSQUEDA MÚLTIPLE ⭐
 from django.db.models import Q
@@ -60,6 +63,7 @@ class PacienteListView(ListView):
         context = super().get_context_data(**kwargs)
         # 3. Mantener el término de búsqueda en el contexto para rellenar el campo del formulario
         context['query'] = self.request.GET.get('q', '')
+        context['current_page'] = 'lista_pacientes'  # Para Sidebar activo
         return context
 
 
@@ -204,3 +208,19 @@ class ExamenOftalmologicoUpdateView(UpdateView):
             return reverse('pacientes:detalle_paciente',
                            kwargs={'pk': self.object.historia_clinica.paciente.pk})
         return reverse('pacientes:lista_pacientes')
+
+
+# 10. Vista de Dashboard (Nueva Página de Inicio)
+class DashboardView(View):
+    def get(self, request, *args, **kwargs):
+        # 1. Calcular Métricas
+        total_pacientes = Paciente.objects.count()
+
+        context = {
+            'total_pacientes': total_pacientes,
+            # Placeholder para futuras métricas
+            'consultas_mes': 15,
+            'proximos_turnos': 5,
+            'current_page': 'dashboard'  # Para marcar el enlace activo en el sidebar
+        }
+        return render(request, 'gestion_clinica/dashboard.html', context)
