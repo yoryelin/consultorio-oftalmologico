@@ -27,6 +27,12 @@ urlpatterns = [
          views.HistoriaClinicaUpdateView.as_view(), name='editar_hc'),
 
     # Rutas de Examen Oftalmológico
+
+    # ⭐ 1. RUTA DE CREACIÓN AÑADIDA: Usa la PK de la Historia Clínica (hc_pk) ⭐
+    path('hc/<int:hc_pk>/examen/nuevo/', views.ExamenOftalmologicoUpdateView.as_view(),
+         name='examen_oftalmologico_crear'),
+
+    # 2. RUTA DE EDICIÓN: Usa la PK del Examen (pk)
     path('examen/<int:pk>/editar/',
-         views.ExamenOftalmologicoUpdateView.as_view(), name='editar_examen'),
+         views.ExamenOftalmologicoUpdateView.as_view(), name='examen_oftalmologico_editar'),
 ]

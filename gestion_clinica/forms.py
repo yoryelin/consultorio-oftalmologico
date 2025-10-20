@@ -1,4 +1,3 @@
-# gestion_clinica/forms.py
 from django import forms
 from .models import Paciente, HistoriaClinica, Profesional, ObraSocial, ExamenOftalmologico
 
@@ -10,7 +9,11 @@ class BaseFormMixin:
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             if not isinstance(field.widget, forms.CheckboxInput):
-                field.widget.attrs.update({'class': 'form-control'})
+                # Evita sobrescribir widgets ya definidos si no son CheckboxInput
+                current_classes = field.widget.attrs.get('class', '')
+                if 'form-control' not in current_classes:
+                    field.widget.attrs['class'] = (
+                        current_classes + ' form-control').strip()
 
 # --- Formularios de Catálogo ---
 
@@ -30,20 +33,27 @@ class ObraSocialForm(BaseFormMixin, forms.ModelForm):
 
 
 class PacienteForm(BaseFormMixin, forms.ModelForm):
-    # Sobrescribimos el widget de fecha para usar un selector de fecha HTML5 (date)
-    fecha_nacimiento = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
+    # ⭐ CORRECCIÓN: Aplicación del formato ISO 8601 para el DateInput. ⭐
 
     class Meta:
         model = Paciente
         # Excluimos num_registro porque se genera automáticamente
         exclude = ('num_registro',)
+
         labels = {
             'dni': 'DNI / Identificación',
             'obra_social': 'Obra Social',
             'num_afiliado': 'N° Afiliado',
             'antecedentes_sistemicos': 'Antecedentes Sistémicos',
+        }
+
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(
+                # Solución: Usar format='%Y-%m-%d' para que el valor precargado
+                # del modelo sea compatible con el input type='date' de HTML5.
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
         }
 
 

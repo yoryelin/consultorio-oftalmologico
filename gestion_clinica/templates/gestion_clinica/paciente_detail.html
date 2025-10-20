@@ -66,28 +66,40 @@
                 <hr>
 
                 <h6 class="text-success">Examen Oftalmológico</h6>
-                {% with examen=historia.examen_oftalmologico %}
-                    {% if examen %}
-                        <div class="row">
+                
+                {% with examen=historia.examen %} 
+                    {% if examen.pk %} 
+                        {# --- Lógica de Examen REGISTRADO (con datos): Muestra datos y botón EDITAR --- #}
+                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <p><strong>Agudeza Visual (OD):</strong> {{ examen.agudeza_visual_od }}</p>
-                                <p><strong>Agudeza Visual (OI):</strong> {{ examen.agudeza_visual_oi }}</p>
+                                <p><strong>Agudeza Visual OD (Lejos):</strong> {{ examen.agudeza_visual_od|default:"N/A" }}</p>
+                                <p><strong>Agudeza Visual OI (Lejos):</strong> {{ examen.agudeza_visual_oi|default:"N/A" }}</p>
                                 <p><strong>PIO (OD):</strong> {{ examen.pio_od|default:"N/A" }}</p>
                                 <p><strong>PIO (OI):</strong> {{ examen.pio_oi|default:"N/A" }}</p>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Fondo de Ojo:</strong> {{ examen.fondo_ojo|default:"N/A" }}</p>
-                                <p><strong>Observaciones:</strong> {{ examen.observaciones|default:"Sin observaciones" }}</p>
+                                <p><strong>Biomicroscopía:</strong> {{ examen.biomicroscopia|default:"Sin datos"|linebreaksbr }}</p>
+                                <p><strong>Fondo de Ojo:</strong> {{ examen.fondo_ojo|default:"Sin datos"|linebreaksbr }}</p>
+                                <p><strong>Observaciones:</strong> {{ examen.observaciones|default:"Sin observaciones"|linebreaksbr }}</p>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end mt-2">
-                            <a href="{% url 'pacientes:editar_examen' pk=examen.pk %}" class="btn btn-sm btn-info text-white">
+                            <a href="{% url 'pacientes:examen_oftalmologico_editar' pk=examen.pk %}" class="btn btn-sm btn-info text-white">
                                 <i class="fas fa-edit me-1"></i> Editar Examen
                             </a>
                         </div>
                     {% else %}
-                        <div class="alert alert-light text-center">
-                            Aún no se ha registrado un Examen Oftalmológico para esta consulta.
+                        {# --- Lógica de Examen PENDIENTE (vacío): Muestra mensaje y botón REGISTRAR --- #}
+                        <div class="row align-items-center">
+                            <div class="col-md-10">
+                                <div class="alert alert-light text-center mb-0">
+                                    Aún no se ha completado el Examen Oftalmológico para esta consulta.
+                                </div>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <a href="{% url 'pacientes:examen_oftalmologico_crear' hc_pk=historia.pk %}" 
+                                   class="btn btn-sm btn-primary">Registrar Examen</a>
+                            </div>
                         </div>
                     {% endif %}
                 {% endwith %}

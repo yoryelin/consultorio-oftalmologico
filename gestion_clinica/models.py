@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.crypto import get_random_string
+from datetime import date  # Importado para el cálculo de edad
 
 # --- Catálogos ---
 
@@ -34,10 +35,7 @@ class ObraSocial(models.Model):
 
 
 class Paciente(models.Model):
-    # ELIMINAMOS la función set_num_registro()
 
-    # CORRECCIÓN: Definimos num_registro como CharField no editable.
-    # Eliminamos el 'default=set_num_registro'
     num_registro = models.CharField(
         max_length=6,  # Se ajusta a 6 dígitos
         unique=True,
@@ -50,7 +48,7 @@ class Paciente(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     dni = models.CharField(max_length=20, unique=True)
-    fecha_nacimiento = models.DateField()
+    fecha_nacimiento = models.DateField()  # Campo clave para calcular la edad
     GENERO_CHOICES = [('M', 'Masculino'), ('F', 'Femenino'), ('O', 'Otro')]
     genero = models.CharField(max_length=1, choices=GENERO_CHOICES)
     telefono = models.CharField(max_length=50)
@@ -63,41 +61,31 @@ class Paciente(models.Model):
     antecedentes_sistemicos = models.TextField(
         blank=True, verbose_name="Antecedentes Sistémicos")
 
-    # NUEVA FUNCIÓN SAVE PARA AUTOGENERAR EL NUM_REGISTRO
-    def save(self, *args, **kwargs):
-        # La lógica de generación se ejecuta SOLO si el objeto es nuevo (no tiene PK)
-        if not self.pk and not self.num_registro:
+    # -----------------------------------------------------------
+    # ⭐ NUEVO MÉTODO DE CÁLCULO DE EDAD ⭐
+    # -----------------------------------------------------------
+    @property
+    def edad(self):
+        """Calcula la edad actual del paciente a partir de la fecha de nacimiento."""
+        if self.fecha_nacimiento:
+            hoy = date.today()
+            edad_calculada = hoy.year - self.fecha_nacimiento.year
+            # Ajuste: Si aún no ha llegado su cumpleaños este año, resta 1
+            if (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day):
+                edad_calculada -= 1
+            return edad_calculada
+        return None
+    # -----------------------------------------------------------
 
-            # Buscamos el último ID de la tabla para simular el correlativo
-            try:
-                # Obtenemos el ID del último paciente guardado.
-                # Utilizamos filter().last().pk para ser más robustos
-                last_paciente = Paciente.objects.all().order_by('id').last()
-                if last_paciente:
-                    new_id = last_paciente.pk + 1
-                else:
-                    new_id = 1
-            except Exception:
-                # En caso de error o tabla vacía, empezamos en 1.
-                new_id = 1
-
-            # Formateamos el número a 6 dígitos con ceros a la izquierda
-            # Por ejemplo: 1 se convierte en '000001'
-            self.num_registro = str(new_id).zfill(6)
-
-        super().save(*args, **kwargs)
+    # EL MÉTODO save() HA SIDO ELIMINADO Y MOVADO A signals.py
 
     def __str__(self):
-        # Modificamos el __str__ para que muestre el nuevo num_registro
         return f'{self.num_registro} - {self.apellido}, {self.nombre}'
 
     def get_absolute_url(self):
         return reverse('pacientes:detalle_paciente', kwargs={'pk': self.pk})
 
     class Meta:
-        # Eliminamos unique_together ya que DNI ya es unique=True y num_registro es unique=True
-        # Si deseas mantener la unicidad, debes decidir si el DNI es suficiente.
-        # Por simplicidad, eliminamos la restricción compuesta por ahora, asumiendo que DNI y num_registro son los únicos identificadores.
         ordering = ['apellido', 'nombre']
 
 

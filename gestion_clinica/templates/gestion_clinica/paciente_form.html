@@ -9,3 +9,40 @@
 {% block card_title %}
     {% if object %}Editar Paciente: {{ object.nombre }} {{ object.apellido }}{% else %}Crear Nuevo Paciente{% endif %}
 {% endblock card_title %}
+
+{% block content %}
+    {# ⭐ CORRECCIÓN CLAVE: Se añade novalidate a la etiqueta form. ⭐ #}
+    <form method="post" novalidate> 
+        {% csrf_token %}
+
+        {# Muestra errores no de campo, si existen #}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {# Renderiza todos los campos del formulario #}
+        {% for field in form %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="text-danger small">{{ field.errors }}</div>
+                {% endif %}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-end mt-4">
+            {# Botón de Cancelar: Redirige a la lista de pacientes o al detalle si estamos editando #}
+            <a href="{% url 'pacientes:lista_pacientes' %}" class="btn btn-secondary me-2">Cancelar</a>
+            
+            <button type="submit" class="btn btn-success">
+                {% if object %}Actualizar Paciente{% else %}Guardar Paciente{% endif %}
+            </button>
+        </div>
+    </form>
+{% endblock content %}
