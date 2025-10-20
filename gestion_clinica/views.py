@@ -1,6 +1,8 @@
 from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
+# ⭐ IMPORTACIÓN NECESARIA PARA LA BÚSQUEDA MÚLTIPLE ⭐
+from django.db.models import Q
 # Asegúrate de que todos los modelos necesarios están importados
 from .models import Paciente, HistoriaClinica, ExamenOftalmologico, Profesional, ObraSocial
 from .forms import (
@@ -26,12 +28,39 @@ class ObraSocialCreateView(CreateView):
 
 # --- Vistas Operacionales: Paciente ---
 
+# 3. Listado de Pacientes (con funcionalidad de BÚSQUEDA)
+
 
 class PacienteListView(ListView):
     model = Paciente
     template_name = 'gestion_clinica/paciente_list.html'
     context_object_name = 'pacientes'
     ordering = ['apellido', 'nombre']
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # 1. Obtener el término de búsqueda de la URL
+        query = self.request.GET.get('q')
+
+        if query:
+            # 2. Aplicar filtros combinados (Q objects)
+            # icontains: insensible a mayúsculas/minúsculas y busca coincidencias parciales
+            queryset = queryset.filter(
+                Q(num_registro__icontains=query) |
+                Q(nombre__icontains=query) |
+                Q(apellido__icontains=query) |
+                Q(dni__icontains=query)
+            ).distinct()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 3. Mantener el término de búsqueda en el contexto para rellenar el campo del formulario
+        context['query'] = self.request.GET.get('q', '')
+        return context
 
 
 class PacienteCreateView(CreateView):
@@ -64,10 +93,9 @@ class PacienteDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         paciente = self.get_object()
 
-        # ⭐ CORRECCIÓN CLAVE: 'examen_oftalmologico' cambiado a 'examen' ⭐
-        # Esto resuelve el FieldError
+        # ⭐ ESTABILIZADO: Usamos 'examen' para resolver FieldError ⭐
         context['historias'] = paciente.historias_clinicas.all().select_related(
-            'profesional', 'examen'  # <--- ¡CAMBIO HECHO AQUÍ!
+            'profesional', 'examen'
         )
         return context
 
@@ -90,15 +118,13 @@ class HistoriaClinicaCreateView(CreateView):
         # Guardar la Historia Clínica para obtener su PK
         response = super().form_valid(form)
 
-        # ⭐ CORRECCIÓN CLAVE: CREAR EL EXAMEN OFTALMOLÓGICO VACÍO AQUÍ ⭐
-        # Esto establece inmediatamente la relación OneToOne para la plantilla
+        # ⭐ ESTABILIZADO: CREAR EL EXAMEN OFTALMOLÓGICO VACÍO AQUÍ ⭐
         ExamenOftalmologico.objects.create(historia_clinica=self.object)
 
         return response
 
     def get_success_url(self):
         """Redirige al detalle del paciente después de guardar la HC."""
-        # Se usa self.object.paciente.pk para obtener el PK del paciente recién asignado (soluciona NoReverseMatch)
         return reverse('pacientes:detalle_paciente', kwargs={'pk': self.object.paciente.pk})
 
     def get_context_data(self, **kwargs):

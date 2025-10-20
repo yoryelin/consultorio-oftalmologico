@@ -10,6 +10,23 @@
     </a>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <form method="GET" class="d-flex" action="{% url 'pacientes:lista_pacientes' %}">
+            <input class="form-control me-2" 
+                   type="search" 
+                   placeholder="Buscar por DNI, Nombre, Apellido o N° Registro" 
+                   aria-label="Search" 
+                   name="q"
+                   value="{{ query }}">
+            <button class="btn btn-outline-success" type="submit"><i class="fas fa-search"></i> Buscar</button>
+            {% if query %}
+            {# Botón Limpiar solo aparece si hay un filtro activo #}
+            <a href="{% url 'pacientes:lista_pacientes' %}" class="btn btn-outline-danger ms-2"><i class="fas fa-times"></i> Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
 {% if pacientes %}
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
@@ -44,6 +61,9 @@
 {% else %}
 <div class="alert alert-info" role="alert">
     No hay pacientes registrados en el sistema. ¡Empieza creando uno!
+    {% if query %}
+    <p class="mb-0 mt-2">La búsqueda '{{ query }}' no arrojó resultados. <a href="{% url 'pacientes:lista_pacientes' %}" class="alert-link">Ver lista completa.</a></p>
+    {% endif %}
 </div>
 {% endif %}
 
