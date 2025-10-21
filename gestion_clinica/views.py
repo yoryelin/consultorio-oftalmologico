@@ -1,226 +1,199 @@
-from django.urls import reverse, reverse_lazy
-from django.views.generic import ListView, DetailView
-# ⭐ IMPORTACIÓN NECESARIA para la DashboardView simple ⭐
-from django.views import View
-from django.shortcuts import render
-from django.views.generic.edit import CreateView, UpdateView
-# ⭐ IMPORTACIÓN NECESARIA PARA LA BÚSQUEDA MÚLTIPLE ⭐
-from django.db.models import Q
-# Asegúrate de que todos los modelos necesarios están importados
-from .models import Paciente, HistoriaClinica, ExamenOftalmologico, Profesional, ObraSocial
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import (
+    ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+)
+from django.urls import reverse_lazy, reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone  # Necesario para filtrar turnos
+from .models import (
+    Paciente, HistoriaClinica, ExamenOftalmologico, Profesional, ObraSocial, Turno
+)
 from .forms import (
-    PacienteForm, HistoriaClinicaForm, ExamenOftalmologicoForm,
-    ProfesionalForm, ObraSocialForm
+    PacienteForm, HistoriaClinicaForm, ExamenOftalmologicoForm, ProfesionalForm, ObraSocialForm
 )
 
-# --- Vistas de Catálogo (Uso Rápido) ---
+# -------------------------------------------------------------
+# 1. DASHBOARD
+# -------------------------------------------------------------
 
 
-class ProfesionalCreateView(CreateView):
-    model = Profesional
-    form_class = ProfesionalForm
-    template_name = 'gestion_clinica/medico_form.html'
-    success_url = reverse_lazy('admin:gestion_clinica_profesional_changelist')
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """Vista principal que muestra métricas resumidas."""
+    template_name = 'gestion_clinica/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Métricas simples para el dashboard
+        context['total_pacientes'] = Paciente.objects.count()
+        # Ejemplo: Consultas/Registros en el último mes
+        hace_un_mes = timezone.now() - timezone.timedelta(days=30)
+        context['consultas_mes'] = HistoriaClinica.objects.filter(
+            fecha__gte=hace_un_mes).count()
+        # Ejemplo: Próximos turnos en los próximos 7 días
+        hace_siete_dias = timezone.now() + timezone.timedelta(days=7)
+        context['proximos_turnos'] = Turno.objects.filter(
+            fecha_hora__range=[timezone.now(), hace_siete_dias]
+        ).count()
+        return context
+
+# -------------------------------------------------------------
+# 2. VISTAS PARA PACIENTES (CRUD)
+# -------------------------------------------------------------
 
 
-class ObraSocialCreateView(CreateView):
-    model = ObraSocial
-    form_class = ObraSocialForm
-    template_name = 'gestion_clinica/form_base.html'
-    success_url = reverse_lazy('admin:gestion_clinica_obrasocial_changelist')
-
-# --- Vistas Operacionales: Paciente ---
-
-# 3. Listado de Pacientes (con funcionalidad de BÚSQUEDA)
-
-
-class PacienteListView(ListView):
+class PacienteListView(LoginRequiredMixin, ListView):
     model = Paciente
     template_name = 'gestion_clinica/paciente_list.html'
     context_object_name = 'pacientes'
-    ordering = ['apellido', 'nombre']
     paginate_by = 10
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
 
-        # 1. Obtener el término de búsqueda de la URL
-        query = self.request.GET.get('q')
-
-        if query:
-            # 2. Aplicar filtros combinados (Q objects)
-            # icontains: insensible a mayúsculas/minúsculas y busca coincidencias parciales
-            queryset = queryset.filter(
-                Q(num_registro__icontains=query) |
-                Q(nombre__icontains=query) |
-                Q(apellido__icontains=query) |
-                Q(dni__icontains=query)
-            ).distinct()
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # 3. Mantener el término de búsqueda en el contexto para rellenar el campo del formulario
-        context['query'] = self.request.GET.get('q', '')
-        context['current_page'] = 'lista_pacientes'  # Para Sidebar activo
-        return context
-
-
-class PacienteCreateView(CreateView):
-    model = Paciente
-    form_class = PacienteForm
-    template_name = 'gestion_clinica/paciente_form.html'
-    # success_url se maneja con get_absolute_url en el modelo Paciente
-
-
-class PacienteUpdateView(UpdateView):
-    model = Paciente
-    form_class = PacienteForm
-    template_name = 'gestion_clinica/paciente_form.html'
-    context_object_name = 'paciente'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form_title'] = f'Editar Paciente: {self.object.num_registro}'
-        return context
-
-# 6. Detalle de Paciente (Vista Maestra que muestra el historial)
-
-
-class PacienteDetailView(DetailView):
+class PacienteDetailView(LoginRequiredMixin, DetailView):
     model = Paciente
     template_name = 'gestion_clinica/paciente_detail.html'
     context_object_name = 'paciente'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        paciente = self.get_object()
-
-        # ⭐ ESTABILIZADO: Usamos 'examen' para resolver FieldError ⭐
-        context['historias'] = paciente.historias_clinicas.all().select_related(
-            'profesional', 'examen'
-        )
+        # Ordenamos las historias de la más reciente a la más antigua
+        context['historias'] = HistoriaClinica.objects.filter(
+            paciente=self.object
+        ).order_by('-fecha')
         return context
 
-# --- Vistas Operacionales: Historia Clínica y Examen ---
 
-# 7. Creación de Historia Clínica (Desde el Detalle del Paciente)
+class PacienteCreateView(LoginRequiredMixin, CreateView):
+    model = Paciente
+    form_class = PacienteForm  # Usamos el formulario del archivo forms.py
+    template_name = 'gestion_clinica/paciente_form.html'
+    success_url = reverse_lazy('pacientes:lista_pacientes')
 
 
-class HistoriaClinicaCreateView(CreateView):
-    model = HistoriaClinica
-    form_class = HistoriaClinicaForm
-    template_name = 'gestion_clinica/historia_clinica_form.html'
-
-    def form_valid(self, form):
-        # 1. Asigna el paciente a la HC usando la PK pasada en la URL
-        paciente_pk = self.kwargs['paciente_pk']
-        paciente = Paciente.objects.get(pk=paciente_pk)
-        form.instance.paciente = paciente
-
-        # Guardar la Historia Clínica para obtener su PK
-        response = super().form_valid(form)
-
-        # ⭐ ESTABILIZADO: CREAR EL EXAMEN OFTALMOLÓGICO VACÍO AQUÍ ⭐
-        ExamenOftalmologico.objects.create(historia_clinica=self.object)
-
-        return response
+class PacienteUpdateView(LoginRequiredMixin, UpdateView):
+    model = Paciente
+    form_class = PacienteForm
+    template_name = 'gestion_clinica/paciente_form.html'
 
     def get_success_url(self):
-        """Redirige al detalle del paciente después de guardar la HC."""
-        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.object.paciente.pk})
+        # Redirige al detalle del paciente después de editar
+        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.object.pk})
 
-    def get_context_data(self, **kwargs):
-        """Añade el título del formulario y el objeto Paciente al contexto."""
-        context = super().get_context_data(**kwargs)
-        paciente_pk = self.kwargs.get('paciente_pk')
-        paciente = Paciente.objects.get(pk=paciente_pk)
-        context['paciente'] = paciente
-        context['form_title'] = f'Nueva Historia Clínica para: {paciente.apellido}, {paciente.nombre}'
-        return context
-
-# 8. Edición de Historia Clínica
+# -------------------------------------------------------------
+# 3. VISTAS PARA HISTORIA CLÍNICA (CRUD Parcial)
+# -------------------------------------------------------------
 
 
-class HistoriaClinicaUpdateView(UpdateView):
+class HistoriaClinicaCreateView(LoginRequiredMixin, CreateView):
     model = HistoriaClinica
     form_class = HistoriaClinicaForm
     template_name = 'gestion_clinica/historia_clinica_form.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        paciente = self.object.paciente
-        context['paciente'] = paciente
-        context['form_title'] = f'Editando Historia Clínica de: {paciente.apellido}, {paciente.nombre}'
+        # Aseguramos que el paciente se muestre en el formulario
+        context['paciente'] = get_object_or_404(
+            Paciente, pk=self.kwargs['paciente_pk'])
         return context
 
-# 9. Edición/Creación de Examen Oftalmológico (Usado como UpdateView)
+    def form_valid(self, form):
+        # Asignamos el paciente antes de guardar
+        paciente = get_object_or_404(Paciente, pk=self.kwargs['paciente_pk'])
+        form.instance.paciente = paciente
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Redirige al detalle del paciente después de crear la HC
+        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.object.paciente.pk})
 
 
-class ExamenOftalmologicoUpdateView(UpdateView):
+class HistoriaClinicaUpdateView(LoginRequiredMixin, UpdateView):
+    model = HistoriaClinica
+    form_class = HistoriaClinicaForm
+    template_name = 'gestion_clinica/historia_clinica_form.html'
+
+    def get_success_url(self):
+        # Redirige al detalle del paciente
+        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.object.paciente.pk})
+
+# -------------------------------------------------------------
+# 4. VISTAS PARA EXAMEN OFTALMOLÓGICO (CRUD Parcial)
+# -------------------------------------------------------------
+
+
+class ExamenOftalmologicoUpdateView(LoginRequiredMixin, UpdateView):
     model = ExamenOftalmologico
     form_class = ExamenOftalmologicoForm
     template_name = 'gestion_clinica/examen_oftalmologico_form.html'
 
+    # Sobrescribimos get_object para que use el hc_pk en lugar del pk del examen
     def get_object(self, queryset=None):
-        """Intenta obtener el Examen asociado a la HC si se usa hc_pk."""
-        hc_pk = self.kwargs.get('hc_pk')
-
-        if hc_pk:
-            try:
-                # Intenta obtener el Examen asociado a esa Historia Clínica
-                return ExamenOftalmologico.objects.get(historia_clinica__pk=hc_pk)
-            except ExamenOftalmologico.DoesNotExist:
-                # Si no existe, devuelve None (aunque la HCCreateView ya lo crea)
-                return None
-
-        return super().get_object(queryset)
-
-    def form_valid(self, form):
-        hc_pk = self.kwargs.get('hc_pk')
-
-        if hc_pk and not form.instance.pk:
-            historia_clinica = HistoriaClinica.objects.get(pk=hc_pk)
-            form.instance.historia_clinica = historia_clinica
-
-        return super().form_valid(form)
+        hc = get_object_or_404(HistoriaClinica, pk=self.kwargs['hc_pk'])
+        # Intenta obtener el examen existente o crea uno nuevo si no existe
+        return ExamenOftalmologico.objects.get_or_create(historia_clinica=hc)[0]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        hc = None
-
-        if self.kwargs.get('hc_pk'):
-            hc = HistoriaClinica.objects.get(pk=self.kwargs['hc_pk'])
-        elif self.object and self.object.historia_clinica:
-            hc = self.object.historia_clinica
-
-        if hc:
-            context['historia_clinica'] = hc
-            context['paciente'] = hc.paciente
-            context['form_title'] = f'Examen Oftalmológico para HC N° {hc.pk} - {hc.paciente.apellido}, {hc.paciente.nombre}'
-
+        # Pasamos la HC y el Paciente al contexto para el breadcrumb
+        context['historia_clinica'] = self.object.historia_clinica
+        context['paciente'] = self.object.historia_clinica.paciente
         return context
 
     def get_success_url(self):
-        """Redirige al detalle del paciente después de guardar."""
-        if self.object and self.object.historia_clinica:
-            return reverse('pacientes:detalle_paciente',
-                           kwargs={'pk': self.object.historia_clinica.paciente.pk})
-        return reverse('pacientes:lista_pacientes')
+        # Redirige al detalle del paciente
+        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.object.historia_clinica.paciente.pk})
+
+# -------------------------------------------------------------
+# 5. VISTAS PARA CATÁLOGO (CRUD Parcial)
+# -------------------------------------------------------------
 
 
-# 10. Vista de Dashboard (Nueva Página de Inicio)
-class DashboardView(View):
-    def get(self, request, *args, **kwargs):
-        # 1. Calcular Métricas
-        total_pacientes = Paciente.objects.count()
+class ProfesionalCreateView(LoginRequiredMixin, CreateView):
+    model = Profesional
+    form_class = ProfesionalForm
+    template_name = 'gestion_clinica/profesional_form.html'
+    # Retornamos al listado de pacientes por simplicidad, aunque lo ideal es al detalle del paciente
+    success_url = reverse_lazy('pacientes:lista_pacientes')
 
-        context = {
-            'total_pacientes': total_pacientes,
-            # Placeholder para futuras métricas
-            'consultas_mes': 15,
-            'proximos_turnos': 5,
-            'current_page': 'dashboard'  # Para marcar el enlace activo en el sidebar
-        }
-        return render(request, 'gestion_clinica/dashboard.html', context)
+
+class ObraSocialCreateView(LoginRequiredMixin, CreateView):
+    model = ObraSocial
+    form_class = ObraSocialForm
+    template_name = 'gestion_clinica/obra_social_form.html'
+    success_url = reverse_lazy('pacientes:lista_pacientes')
+
+# -------------------------------------------------------------
+# ⭐ 6. VISTAS PARA GESTIÓN DE TURNOS (Objetivo 2.2) ⭐
+# -------------------------------------------------------------
+
+
+class TurnoListView(LoginRequiredMixin, ListView):
+    """Muestra la lista de turnos (la agenda)."""
+    model = Turno
+    template_name = 'gestion_clinica/turno_list.html'
+    context_object_name = 'turnos'
+
+    # Sobrescribimos get_queryset para filtrar por la fecha actual o futura
+    def get_queryset(self):
+        # Muestra solo turnos a partir de la fecha y hora actual, ordenados por fecha
+        # Usamos filter(fecha_hora__date__gte=timezone.localdate()) para incluir el día actual
+        return Turno.objects.filter(fecha_hora__gte=timezone.now()).order_by('fecha_hora')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Turnos pasados (últimos 15) para historial rápido
+        context['turnos_pasados'] = Turno.objects.filter(
+            fecha_hora__lt=timezone.now()).order_by('-fecha_hora')[:15]
+        return context
+
+
+class TurnoCreateView(LoginRequiredMixin, CreateView):
+    """Permite crear un nuevo turno."""
+    model = Turno
+    template_name = 'gestion_clinica/turno_form.html'
+    # Importante: Usamos el campo fecha_hora que acepta fecha y tiempo
+    fields = ['paciente', 'profesional',
+              'fecha_hora', 'estado', 'observaciones']
+
+    def get_success_url(self):
+        # Redirigir al listado de turnos después de crear uno nuevo
+        return reverse_lazy('pacientes:lista_turnos')

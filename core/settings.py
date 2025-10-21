@@ -1,5 +1,6 @@
 # core/settings.py
 from pathlib import Path
+import os  # CRÍTICO: Importado para asegurar la compatibilidad de rutas en Windows
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,11 +28,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Crispy Forms y el Template Pack de Bootstrap 5 (Solución para uni_form.html)
+    'crispy_forms',
+    'crispy_bootstrap5',
+
     # Apps Locales
     'gestion_clinica',  # Registro de la aplicación principal
 ]
 
-# Restauración de MIDDLEWARE (CÓDIGO FALTANTE)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -44,7 +48,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
-# Restauración de TEMPLATES (CÓDIGO FALTANTE)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -113,7 +116,25 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# CORRECCIÓN CRÍTICA PARA EL ERROR 404 DE ESTILOS EN WINDOWS
+STATICFILES_DIRS = [
+    # Usa os.path.join para crear rutas multiplataforma
+    os.path.join(BASE_DIR, 'static'),
+]
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# CONFIGURACIONES ADICIONALES (Añadir al final del archivo)
+
+# Configuración de Crispy Forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# Configuración de redirección de Login y Logout
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

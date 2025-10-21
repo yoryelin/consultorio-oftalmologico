@@ -1,0 +1,66 @@
+{% extends "gestion_clinica/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Turno{% else %}Nuevo Turno{% endif %}
+{% endblock title %}
+
+{% block title_heading %}
+    {% if form.instance.pk %}Editar Turno{% else %}Registrar Nuevo Turno{% endif %}
+{% endblock title_heading %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    {% if form.instance.pk %}Edición de Turno{% else %}Asignación de Cita{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <p class="text-muted">Los campos marcados con * son obligatorios.</p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.paciente|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.profesional|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.fecha_hora|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.estado|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    {{ form.observaciones|as_crispy_field }}
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'pacientes:lista_turnos' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i> 
+                            {% if form.instance.pk %}Guardar Cambios{% else %}Confirmar Turno{% endif %}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
