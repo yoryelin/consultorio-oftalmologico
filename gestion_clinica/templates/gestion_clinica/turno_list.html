@@ -1,4 +1,5 @@
 {% extends "gestion_clinica/base.html" %}
+{% load static %}
 
 {% block title %}Agenda de Turnos{% endblock title %}
 
@@ -12,6 +13,14 @@
     </a>
 </div>
 
+{# Contenedor del Calendario #}
+<div class="mb-4">
+    <div id='calendar' class="bg-light p-3 border rounded shadow-sm"></div>
+</div>
+<hr>
+<h3 class="mb-3">Listado y Historial</h3>
+
+{# Listado de Turnos #}
 <div class="card shadow">
     <div class="card-header p-0">
         <ul class="nav nav-tabs" id="turnoTabs" role="tablist">
@@ -63,7 +72,8 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-info text-white" title="Ver Detalle">
+                                        {# Usamos la URL que creamos para el detalle del turno #}
+                                        <a href="{% url 'pacientes:detalle_turno' pk=turno.pk %}" class="btn btn-sm btn-info text-white" title="Ver Detalle">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -120,3 +130,48 @@
 </div>
 
 {% endblock content %}
+
+
+{# BLOQUE DE JAVASCRIPT: Se inyectará al final de base.html #}
+{% block extra_js %}
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                // Configuraciones de idioma y apariencia
+                locale: 'es', 
+                initialView: 'timeGridWeek', // Vista inicial: semana
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                // Zona horaria local (IMPORTANTE para coincidir con Django/DB)
+                timeZone: 'local', 
+                slotMinTime: '08:00:00', // Horario de inicio
+                slotMaxTime: '20:00:00', // Horario de fin
+                expandRows: true,
+                navLinks: true, // permite hacer clic en los nombres de los días/semanas
+                
+                // ⭐ MODIFICACIÓN APLICADA: Oculta Sábados y Domingos ⭐
+                weekends: false, 
+
+                // FUENTE DE DATOS: Apunta al API JSON.
+                events: '{% url "pacientes:turnos_json_api" %}', 
+
+                // Función para manejar clics en eventos (redirecciona a detalle)
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        return false; // Previene la acción por defecto
+                    }
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+{% endblock extra_js %}

@@ -72,7 +72,7 @@
                         <div id="collapse{{ historia.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ historia.pk }}" data-bs-parent="#historiaAccordion">
                             <div class="accordion-body">
                                 
-                                <h6 class="text-primary">Motivo y Diagnóstico</h6>
+                                <h6 class="text-secondary">Información General de la Consulta</h6>
                                 <p><strong>Motivo de Consulta:</strong> {{ historia.motivo_consulta|linebreaksbr }}</p>
                                 <p><strong>Diagnóstico:</strong> {{ historia.diagnostico|linebreaksbr }}</p>
                                 <p><strong>Tratamiento:</strong> {{ historia.tratamiento|linebreaksbr }}</p>
@@ -85,17 +85,17 @@
 
                                 <hr>
 
-                                <h6 class="text-success">Examen Oftalmológico</h6>
+                                <h6 class="text-success">Examen Oftalmológico (E.O. - Datos Técnicos)</h6>
                                 
                                 {% with examen=historia.examen %} 
                                     {% if examen.pk %} 
                                         {# --- Lógica de Examen REGISTRADO (con datos): Muestra datos y botón EDITAR --- #}
                                         <div class="row mb-3">
                                             <div class="col-md-6">
-                                                <p><strong>Agudeza Visual OD (Lejos):</strong> {{ examen.agudeza_visual_od|default:"N/A" }}</p>
-                                                <p><strong>Agudeza Visual OI (Lejos):</strong> {{ examen.agudeza_visual_oi|default:"N/A" }}</p>
-                                                <p><strong>PIO (OD):</strong> {{ examen.pio_od|default:"N/A" }}</p>
-                                                <p><strong>PIO (OI):</strong> {{ examen.pio_oi|default:"N/A" }}</p>
+                                                <p><strong>Agudeza Visual OD:</strong> {{ examen.agudeza_visual_od|default:"N/A" }}</p>
+                                                <p><strong>Agudeza Visual OI:</strong> {{ examen.agudeza_visual_oi|default:"N/A" }}</p>
+                                                <p><strong>PIO OD:</strong> {{ examen.presion_intraocular_od|default:"N/A" }}</p>
+                                                <p><strong>PIO OI:</strong> {{ examen.presion_intraocular_oi|default:"N/A" }}</p>
                                             </div>
                                             <div class="col-md-6">
                                                 <p><strong>Biomicroscopía:</strong> {{ examen.biomicroscopia|default:"Sin datos"|linebreaksbr }}</p>
@@ -104,9 +104,8 @@
                                             </div>
                                         </div>
                                         <div class="d-flex justify-content-end mt-2">
-                                            {# ⭐ CORRECCIÓN DE URL: Usamos hc_pk para redirigir correctamente la edición del examen ⭐ #}
                                             <a href="{% url 'pacientes:editar_examen_oftalmologico' hc_pk=historia.pk %}" class="btn btn-sm btn-info text-white">
-                                                <i class="fas fa-edit me-1"></i> Editar Examen
+                                                <i class="fas fa-edit me-1"></i> Editar E.O.
                                             </a>
                                         </div>
                                     {% else %}
@@ -118,15 +117,13 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-2 text-end">
-                                                {# ⭐ CORRECCIÓN DE URL: Usamos hc_pk para redirigir correctamente la creación del examen ⭐ #}
                                                 <a href="{% url 'pacientes:editar_examen_oftalmologico' hc_pk=historia.pk %}" 
-                                                    class="btn btn-sm btn-primary">Registrar Examen</a>
+                                                    class="btn btn-sm btn-primary">Registrar E.O.</a>
                                             </div>
                                         </div>
                                     {% endif %}
                                 {% endwith %}
-
-                            </div>
+                                </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -145,6 +142,8 @@
                 <div class="card bg-light p-3">
                     <p class="mb-0"><strong>Antecedentes Sistémicos:</strong></p>
                     <p class="mb-0">{{ paciente.antecedentes_sistemicos|default:"Ninguno registrado."|linebreaksbr }}</p>
+                    <p class="mb-0"><strong>Antecedentes Oftalmológicos:</strong></p>
+                    <p class="mb-0">{{ paciente.antecedentes_oftalmologicos|default:"Ninguno registrado."|linebreaksbr }}</p>
                 </div>
             </div>
 

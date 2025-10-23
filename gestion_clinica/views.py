@@ -5,11 +5,16 @@ from django.views.generic import (
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone  # Necesario para filtrar turnos
+# ⭐ NUEVA IMPORTACIÓN para transacciones atómicas
+from django.db import transaction
+# ⭐ NUEVAS IMPORTACIONES para la vista JSON de Turnos ⭐
+from django.http import JsonResponse
+
 from .models import (
     Paciente, HistoriaClinica, ExamenOftalmologico, Profesional, ObraSocial, Turno
 )
 from .forms import (
-    PacienteForm, HistoriaClinicaForm, ExamenOftalmologicoForm, ProfesionalForm, ObraSocialForm
+    PacienteForm, HistoriaClinicaForm, ExamenOftalmologicoForm, ProfesionalForm, ObraSocialForm, TurnoForm
 )
 
 # -------------------------------------------------------------
@@ -64,9 +69,12 @@ class PacienteDetailView(LoginRequiredMixin, DetailView):
 
 class PacienteCreateView(LoginRequiredMixin, CreateView):
     model = Paciente
-    form_class = PacienteForm  # Usamos el formulario del archivo forms.py
+    form_class = PacienteForm
     template_name = 'gestion_clinica/paciente_form.html'
-    success_url = reverse_lazy('pacientes:lista_pacientes')
+
+    def get_success_url(self):
+        # Redirige a la creación del turno, pasando el ID del paciente como parámetro GET.
+        return reverse('pacientes:crear_turno') + f'?paciente_id={self.object.pk}'
 
 
 class PacienteUpdateView(LoginRequiredMixin, UpdateView):
@@ -83,6 +91,59 @@ class PacienteUpdateView(LoginRequiredMixin, UpdateView):
 # -------------------------------------------------------------
 
 
+class ExamenOftalmologicoFirstCreateView(LoginRequiredMixin, CreateView):
+    """
+    Vista prioritaria para la primera consulta. Utiliza el formulario de E.O.
+    para crear primero el E.O. y luego la Historia Clínica (HC) asociada.
+    """
+    model = ExamenOftalmologico
+    form_class = ExamenOftalmologicoForm
+    template_name = 'gestion_clinica/examen_oftalmologico_first_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['paciente'] = get_object_or_404(
+            Paciente, pk=self.kwargs['paciente_pk'])
+        return context
+
+    def form_valid(self, form):
+        paciente = get_object_or_404(Paciente, pk=self.kwargs['paciente_pk'])
+
+        profesional_asignado = None
+        try:
+            profesional_asignado = self.request.user.profesional
+        except AttributeError:
+            try:
+                profesional_asignado = Profesional.objects.first()
+            except Profesional.DoesNotExist:
+                profesional_asignado = None
+        except Profesional.DoesNotExist:
+            try:
+                profesional_asignado = Profesional.objects.first()
+            except Profesional.DoesNotExist:
+                profesional_asignado = None
+
+        with transaction.atomic():
+            # 1. Crear la Historia Clínica (el "contenedor")
+            historia_clinica = HistoriaClinica.objects.create(
+                paciente=paciente,
+                profesional=profesional_asignado,
+                motivo_consulta="Registro Inicial (E.O. Prioritario)",
+                diagnostico="Pendiente de evaluación",
+                tratamiento="Pendiente de indicación",
+            )
+
+            # 2. Asignar la HC al Examen y guardarlo
+            form.instance.historia_clinica = historia_clinica
+            self.object = form.save()
+
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        # Redirige al detalle del paciente después de crear HC y E.O.
+        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.kwargs['paciente_pk']})
+
+
 class HistoriaClinicaCreateView(LoginRequiredMixin, CreateView):
     model = HistoriaClinica
     form_class = HistoriaClinicaForm
@@ -90,7 +151,6 @@ class HistoriaClinicaCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Aseguramos que el paciente se muestre en el formulario
         context['paciente'] = get_object_or_404(
             Paciente, pk=self.kwargs['paciente_pk'])
         return context
@@ -125,7 +185,6 @@ class ExamenOftalmologicoUpdateView(LoginRequiredMixin, UpdateView):
     form_class = ExamenOftalmologicoForm
     template_name = 'gestion_clinica/examen_oftalmologico_form.html'
 
-    # Sobrescribimos get_object para que use el hc_pk en lugar del pk del examen
     def get_object(self, queryset=None):
         hc = get_object_or_404(HistoriaClinica, pk=self.kwargs['hc_pk'])
         # Intenta obtener el examen existente o crea uno nuevo si no existe
@@ -151,7 +210,6 @@ class ProfesionalCreateView(LoginRequiredMixin, CreateView):
     model = Profesional
     form_class = ProfesionalForm
     template_name = 'gestion_clinica/profesional_form.html'
-    # Retornamos al listado de pacientes por simplicidad, aunque lo ideal es al detalle del paciente
     success_url = reverse_lazy('pacientes:lista_pacientes')
 
 
@@ -159,10 +217,10 @@ class ObraSocialCreateView(LoginRequiredMixin, CreateView):
     model = ObraSocial
     form_class = ObraSocialForm
     template_name = 'gestion_clinica/obra_social_form.html'
-    success_url = reverse_lazy('pacientes:lista_pacientes')
+    success_url = reverse_lazy('pacientes:crear_turno')
 
 # -------------------------------------------------------------
-# ⭐ 6. VISTAS PARA GESTIÓN DE TURNOS (Objetivo 2.2) ⭐
+# ⭐ 6. VISTAS PARA GESTIÓN DE TURNOS (ETAPA 2) ⭐
 # -------------------------------------------------------------
 
 
@@ -172,10 +230,8 @@ class TurnoListView(LoginRequiredMixin, ListView):
     template_name = 'gestion_clinica/turno_list.html'
     context_object_name = 'turnos'
 
-    # Sobrescribimos get_queryset para filtrar por la fecha actual o futura
     def get_queryset(self):
         # Muestra solo turnos a partir de la fecha y hora actual, ordenados por fecha
-        # Usamos filter(fecha_hora__date__gte=timezone.localdate()) para incluir el día actual
         return Turno.objects.filter(fecha_hora__gte=timezone.now()).order_by('fecha_hora')
 
     def get_context_data(self, **kwargs):
@@ -187,13 +243,66 @@ class TurnoListView(LoginRequiredMixin, ListView):
 
 
 class TurnoCreateView(LoginRequiredMixin, CreateView):
-    """Permite crear un nuevo turno."""
+    """Permite crear un nuevo turno y maneja la preselección del paciente."""
     model = Turno
+    form_class = TurnoForm
     template_name = 'gestion_clinica/turno_form.html'
-    # Importante: Usamos el campo fecha_hora que acepta fecha y tiempo
-    fields = ['paciente', 'profesional',
-              'fecha_hora', 'estado', 'observaciones']
+    success_url = reverse_lazy('pacientes:lista_turnos')
 
-    def get_success_url(self):
-        # Redirigir al listado de turnos después de crear uno nuevo
-        return reverse_lazy('pacientes:lista_turnos')
+    def get_initial(self):
+        initial = super().get_initial()
+        paciente_id = self.request.GET.get('paciente_id')
+
+        if paciente_id:
+            initial['paciente'] = paciente_id
+
+        return initial
+
+
+# ⭐ VISTA DE DETALLE DE TURNO (AÑADIDA PARA RESOLVER NoReverseMatch) ⭐
+class TurnoDetailView(LoginRequiredMixin, DetailView):
+    """Muestra los detalles de un turno."""
+    model = Turno
+    template_name = 'gestion_clinica/turno_detail.html'
+    context_object_name = 'turno'
+
+
+# ⭐ VISTA PARA EL API DEL CALENDARIO (FULLCALENDAR) ⭐
+class TurnosJsonView(LoginRequiredMixin, ListView):
+    """
+    Devuelve los turnos en formato JSON para ser consumidos por FullCalendar.
+    """
+    model = Turno
+
+    def get_queryset(self):
+        queryset = super().get_queryset().exclude(estado='CANCELADO')
+        return queryset
+
+    def render_to_response(self, context, **response_kwargs):
+        turnos = self.get_queryset()
+        eventos = []
+
+        for turno in turnos:
+            # FullCalendar necesita un diccionario con campos específicos
+            eventos.append({
+                'id': turno.pk,
+                'title': f'{turno.paciente.apellido}, {turno.paciente.nombre}',
+                'start': turno.fecha_hora.isoformat(),
+                'end': turno.fecha_hora.isoformat(),
+                'allDay': False,
+                'color': self.get_color_for_estado(turno.estado),
+                # ESTO YA NO FALLARÁ
+                'url': reverse('pacientes:detalle_turno', kwargs={'pk': turno.pk}),
+            })
+
+        return JsonResponse(eventos, safe=False)
+
+    def get_color_for_estado(self, estado):
+        """Asigna un color CSS basado en el estado del turno."""
+        colores = {
+            'PENDIENTE': '#007bff',
+            'CONFIRMADO': '#ffc107',
+            'ATENDIDO': '#28a745',
+            'CANCELADO': '#dc3545',
+        }
+        return colores.get(estado, '#6c757d')

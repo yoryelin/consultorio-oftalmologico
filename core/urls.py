@@ -7,13 +7,14 @@ from gestion_clinica.views import DashboardView
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # CORRECCIÓN CLAVE: Usamos la inclusión estándar (SIN namespace ni app_name)
-    # Django encontrará el nombre 'logout' aquí.
+    # URLs de autenticación
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # URL de la aplicación principal (Dashboard)
+    # 1. Dashboard (la única URL de gestion_clinica que NO usa el prefijo 'pacientes/')
     path('', DashboardView.as_view(), name='dashboard'),
 
-    # URLs de la aplicación 'gestion_clinica' (Pacientes, Turnos, etc.)
-    path('', include('gestion_clinica.urls')),
+    # 2. URLs de la aplicación 'gestion_clinica' (Pacientes, Turnos, etc.)
+    # ⭐ CORRECCIÓN CLAVE: Prefijamos TODAS las rutas de la app con 'pacientes/'
+    # Esto soluciona la inconsistencia en el log de Django.
+    path('pacientes/', include('gestion_clinica.urls')),
 ]

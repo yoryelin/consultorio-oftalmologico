@@ -6,6 +6,7 @@
 {% endblock title %}
 
 {% block title_heading %}
+    {# Mantenemos el título aquí para la estructura de la página #}
     {% if form.instance.pk %}Editar Turno{% else %}Registrar Nuevo Turno{% endif %}
 {% endblock title_heading %}
 
@@ -13,10 +14,24 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>{% if form.instance.pk %}Edición de Turno{% else %}Asignación de Cita{% endif %}</h3>
+            
+            {% if not form.instance.pk %}
+            <a href="{% url 'pacientes:crear_paciente' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Registrar Nuevo Paciente (Primera Consulta)
+            </a>
+            {% endif %}
+        </div>
+        
+        <hr>
+        
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
-                    {% if form.instance.pk %}Edición de Turno{% else %}Asignación de Cita{% endif %}
+                    {# El título interior de la tarjeta ahora es solo informativo #}
+                    Formulario
                 </h5>
             </div>
             <div class="card-body">
@@ -27,8 +42,16 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            {{ form.paciente|as_crispy_field }}
-                        </div>
+                            <div class="d-flex align-items-end"> 
+                                <div class="flex-grow-1 me-2">
+                                    {{ form.paciente|as_crispy_field }}
+                                </div>
+                                <a href="{% url 'pacientes:crear_obra_social' %}" class="btn btn-secondary mb-3" 
+                                    title="Registrar nueva Obra Social">
+                                    <i class="fas fa-plus"></i> OS
+                                </a>
+                            </div>
+                            </div>
                         <div class="col-md-6">
                             {{ form.profesional|as_crispy_field }}
                         </div>

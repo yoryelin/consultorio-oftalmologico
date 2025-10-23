@@ -17,6 +17,7 @@
     <div class="row min-vh-100">
         
         <div id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse p-0">
+            {% comment %} (Contenido omitido por brevedad, pero debe mantenerse completo) {% endcomment %}
             <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark min-vh-100">
                 <a href="{% url 'pacientes:dashboard' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                     <span class="fs-4">OPTIGESTIÓN</span>
@@ -25,7 +26,7 @@
                 
                 <ul class="nav flex-column mb-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-white {% if request.path == '/' %}active bg-secondary{% endif %}" 
+                        <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' %}active bg-secondary{% endif %}" 
                            href="{% url 'pacientes:dashboard' %}">
                             <i class="fas fa-home me-2"></i> Dashboard
                         </a>
@@ -34,14 +35,14 @@
                     <li class="nav-header mt-3 text-white-50">Gestión Clínica</li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' %}active bg-secondary{% endif %}" 
+                        <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' and request.path|slice:"11:15" != 'turn' %}active bg-secondary{% endif %}" 
                            href="{% url 'pacientes:lista_pacientes' %}">
                             <i class="fas fa-users me-2"></i> Pacientes
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-white {% if request.path|slice:":7" == '/turnos' %}active bg-secondary{% endif %}" 
+                        <a class="nav-link text-white {% if 'turnos' in request.path %}active bg-secondary{% endif %}" 
                            href="{% url 'pacientes:lista_turnos' %}">
                             <i class="fas fa-calendar-alt me-2"></i> Turnos
                         </a>
@@ -50,7 +51,7 @@
                     <li class="nav-header mt-3 text-white-50">Administración</li>
                     
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#">
+                        <a class="nav-link text-white" href="{% url 'admin:index' %}">
                             <i class="fas fa-cog me-2"></i> Administración
                         </a>
                     </li>
@@ -90,6 +91,10 @@
 </div>
 
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+{# ⭐ ESTO ES LO NUEVO: EL BLOQUE PARA CÓDIGO JS ESPECÍFICO DE LA PÁGINA ⭐ #}
+{% block extra_js %}
+{% endblock extra_js %}
 
 </body>
 </html>
