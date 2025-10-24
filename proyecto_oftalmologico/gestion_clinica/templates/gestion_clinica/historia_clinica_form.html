@@ -1,0 +1,70 @@
+{% extends "gestion_clinica/form_base.html" %}
+
+{% block form_title %}
+    {# Usamos el título que pasamos desde la vista (que incluye el nombre del paciente) #}
+    {{ form_title }} 
+{% endblock form_title %}
+
+{% block content %}
+    <form method="post">
+        {% csrf_token %}
+
+        {# 1. Formulario principal para la Historia Clínica #}
+        <div class="row">
+            <div class="col-12">
+                <fieldset class="border p-3 mb-4">
+                    <legend class="w-auto px-2">Datos de la Consulta</legend>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.profesional.label_tag }}
+                            {{ form.profesional }}
+                            {{ form.profesional.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {# El campo 'paciente' se llena automáticamente en views.py, si existe, se puede ocultar #}
+                            {# Renderiza el campo paciente para mantener la integridad del formulario si es necesario #}
+                            {% for field in form %}
+                                {% if field.name == 'paciente' %}
+                                    {{ field }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.motivo_consulta.label_tag }}
+                        {{ form.motivo_consulta }}
+                        {{ form.motivo_consulta.errors }}
+                    </div>
+                </fieldset>
+            </div>
+            
+            <div class="col-12">
+                <fieldset class="border p-3 mb-4">
+                    <legend class="w-auto px-2">Diagnóstico y Tratamiento</legend>
+                    <div class="mb-3">
+                        {{ form.diagnostico_principal.label_tag }}
+                        {{ form.diagnostico_principal }}
+                        {{ form.diagnostico_principal.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.tratamiento.label_tag }}
+                        {{ form.tratamiento }}
+                        {{ form.tratamiento.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.observaciones.label_tag }}
+                        {{ form.observaciones }}
+                        {{ form.observaciones.errors }}
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            {# ⭐ ENLACE DE CANCELACIÓN CORREGIDO ⭐ #}
+            {# Utiliza la variable 'paciente' que la vista HistoriaClinicaCreateView pasa al contexto. #}
+            <a href="{% url 'pacientes:detalle_paciente' pk=paciente.pk %}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-success">Guardar Historia Clínica</button>
+        </div>
+    </form>
+{% endblock content %}
