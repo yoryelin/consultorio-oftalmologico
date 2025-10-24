@@ -1,0 +1,7 @@
+{% extends "gestion_clinica/form_base.html" %}
+
+{% block form_title %}Crear Nuevo Profesional (Médico){% endblock form_title %}
+
+{% block back_url %}
+    {% url 'admin:gestion_clinica_profesional_changelist' %}
+{% endblock back_url %}

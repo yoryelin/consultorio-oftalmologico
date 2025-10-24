@@ -1,0 +1,154 @@
+{% extends "gestion_clinica/base.html" %}
+
+{% block title %}Detalle de Paciente: {{ paciente.apellido }}, {{ paciente.nombre }}{% endblock title %}
+
+{% block title_heading %}Detalle de Paciente: {{ paciente.apellido }}, {{ paciente.nombre }}{% endblock title_heading %}
+
+{% block content %}
+
+<div class="d-flex justify-content-end align-items-center mb-4">
+    <a href="{% url 'pacientes:crear_historia_clinica' paciente_pk=paciente.pk %}" class="btn btn-primary me-2">
+        <i class="fas fa-file-medical me-1"></i> Nueva Historia Clínica
+    </a>
+    <a href="{% url 'pacientes:editar_paciente' pk=paciente.pk %}" class="btn btn-warning">
+        <i class="fas fa-edit me-1"></i> Editar Paciente
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-header p-0">
+        <ul class="nav nav-tabs" id="pacienteTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">
+                    <i class="fas fa-id-card me-1"></i> Información General
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" aria-controls="historial" aria-selected="false">
+                    <i class="fas fa-notes-medical me-1"></i> Historial Clínico ({{ historias|length }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="antecedentes-tab" data-bs-toggle="tab" data-bs-target="#antecedentes" type="button" role="tab" aria-controls="antecedentes" aria-selected="false">
+                    <i class="fas fa-clipboard-list me-1"></i> Antecedentes
+                </button>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="card-body">
+        <div class="tab-content" id="pacienteTabsContent">
+            
+            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <h5 class="mb-4 text-primary">Datos Personales y de Contacto</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Registro N°:</strong> {{ paciente.num_registro }}</p>
+                        <p><strong>Nombre Completo:</strong> {{ paciente.nombre }} {{ paciente.apellido }}</p>
+                        <p><strong>DNI:</strong> {{ paciente.dni }}</p>
+                        <p><strong>Fecha de Nacimiento:</strong> {{ paciente.fecha_nacimiento|date:"d/m/Y" }} ({{ paciente.edad }} años)</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Domicilio:</strong> {{ paciente.domicilio|default:"N/A" }}</p>
+                        <p><strong>Teléfono:</strong> {{ paciente.telefono|default:"N/A" }}</p>
+                        <p><strong>Email:</strong> {{ paciente.email|default:"N/A" }}</p>
+                        <p><strong>Obra Social:</strong> {{ paciente.obra_social|default:"N/A" }} (Afiliado: {{ paciente.num_afiliado|default:"N/A" }})</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="historial" role="tabpanel" aria-labelledby="historial-tab">
+                
+                {% if historias %}
+                <h5 class="mb-4 text-primary">Detalle de Consultas Anteriores</h5>
+                <div class="accordion" id="historiaAccordion">
+                    {% for historia in historias %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ historia.pk }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ historia.pk }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ historia.pk }}">
+                                **Consulta N° {{ forloop.revcounter }}** - Fecha: {{ historia.fecha|date:"d/m/Y H:i" }} - Profesional: {{ historia.profesional }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ historia.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ historia.pk }}" data-bs-parent="#historiaAccordion">
+                            <div class="accordion-body">
+                                
+                                <h6 class="text-secondary">Información General de la Consulta</h6>
+                                <p><strong>Motivo de Consulta:</strong> {{ historia.motivo_consulta|linebreaksbr }}</p>
+                                <p><strong>Diagnóstico:</strong> {{ historia.diagnostico|linebreaksbr }}</p>
+                                <p><strong>Tratamiento:</strong> {{ historia.tratamiento|linebreaksbr }}</p>
+
+                                <div class="d-flex justify-content-end mb-3">
+                                    <a href="{% url 'pacientes:editar_historia_clinica' pk=historia.pk %}" class="btn btn-sm btn-warning me-2">
+                                        <i class="fas fa-edit me-1"></i> Editar Historia
+                                    </a>
+                                </div>
+
+                                <hr>
+
+                                <h6 class="text-success">Examen Oftalmológico (E.O. - Datos Técnicos)</h6>
+                                
+                                {% with examen=historia.examen %} 
+                                    {% if examen.pk %} 
+                                        {# --- Lógica de Examen REGISTRADO (con datos): Muestra datos y botón EDITAR --- #}
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <p><strong>Agudeza Visual OD:</strong> {{ examen.agudeza_visual_od|default:"N/A" }}</p>
+                                                <p><strong>Agudeza Visual OI:</strong> {{ examen.agudeza_visual_oi|default:"N/A" }}</p>
+                                                <p><strong>PIO OD:</strong> {{ examen.presion_intraocular_od|default:"N/A" }}</p>
+                                                <p><strong>PIO OI:</strong> {{ examen.presion_intraocular_oi|default:"N/A" }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Biomicroscopía:</strong> {{ examen.biomicroscopia|default:"Sin datos"|linebreaksbr }}</p>
+                                                <p><strong>Fondo de Ojo:</strong> {{ examen.fondo_ojo|default:"Sin datos"|linebreaksbr }}</p>
+                                                <p><strong>Observaciones:</strong> {{ examen.observaciones|default:"Sin observaciones"|linebreaksbr }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end mt-2">
+                                            <a href="{% url 'pacientes:editar_examen_oftalmologico' hc_pk=historia.pk %}" class="btn btn-sm btn-info text-white">
+                                                <i class="fas fa-edit me-1"></i> Editar E.O.
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        {# --- Lógica de Examen PENDIENTE (vacío): Muestra mensaje y botón REGISTRAR --- #}
+                                        <div class="row align-items-center">
+                                            <div class="col-md-10">
+                                                <div class="alert alert-light text-center mb-0">
+                                                    Aún no se ha completado el Examen Oftalmológico para esta consulta.
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 text-end">
+                                                <a href="{% url 'pacientes:editar_examen_oftalmologico' hc_pk=historia.pk %}" 
+                                                    class="btn btn-sm btn-primary">Registrar E.O.</a>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                                </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-1"></i> Este paciente aún no tiene Historias Clínicas registradas.
+                </div>
+                {% endif %}
+
+            </div>
+
+            <div class="tab-pane fade" id="antecedentes" role="tabpanel" aria-labelledby="antecedentes-tab">
+                <h5 class="mb-4 text-primary">Antecedentes Sistémicos y Oftalmológicos</h5>
+                <div class="card bg-light p-3">
+                    <p class="mb-0"><strong>Antecedentes Sistémicos:</strong></p>
+                    <p class="mb-0">{{ paciente.antecedentes_sistemicos|default:"Ninguno registrado."|linebreaksbr }}</p>
+                    <p class="mb-0"><strong>Antecedentes Oftalmológicos:</strong></p>
+                    <p class="mb-0">{{ paciente.antecedentes_oftalmologicos|default:"Ninguno registrado."|linebreaksbr }}</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
