@@ -1,20 +1,21 @@
 from django import forms
+# AÑADIR PrescripcionLentes al grupo de modelos importados
 from .models import (
-    # <--- Agregado Turno
-    Paciente, HistoriaClinica, Profesional, ObraSocial, ExamenOftalmologico, Turno
+    Paciente, HistoriaClinica, Profesional, ObraSocial, ExamenOftalmologico, Turno,
+    # ❌ ELIMINADA: PrescripcionLentes ya no se importa
 )
 # ⭐ IMPORTACIÓN DEL MIXIN ⭐
 from .mixins import BaseFormMixin
 
-# ⭐ IMPORTACIONES PARA CRISPY FORMS (TurnoForm) ⭐
+# ⭐ IMPORTACIONES PARA CRISPY FORMS ⭐
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, Submit
+# <--- Añadir Row y Column
+from crispy_forms.layout import Layout, Fieldset, Submit, Row, Column
 
 # --------------------------------------------------------------------------
 # Lógica para la escala de Agudeza Visual (AV) en incrementos de 0.25
 # --------------------------------------------------------------------------
 # Generamos los valores de 0.25 (25) hasta 20.00 (2000)
-# Usamos i / 100 para convertir el entero a flotante para las etiquetas
 AV_CHOICES = [
     ('', '---------')] + [
     (str(i / 100), str(i / 100))
@@ -72,6 +73,7 @@ class ExamenOftalmologicoForm(BaseFormMixin, forms.ModelForm):
             'biomicroscopia': forms.Textarea(attrs={'rows': 3}),
             'fondo_ojo': forms.Textarea(attrs={'rows': 3}),
             'observaciones': forms.Textarea(attrs={'rows': 3}),
+            # ❌ ELIMINADO: 'is_active' y 'fecha_anulacion' ya no están en el modelo
         }
 
 
@@ -80,7 +82,8 @@ class ProfesionalForm(BaseFormMixin, forms.ModelForm):
         model = Profesional
         fields = '__all__'
         widgets = {
-            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+            # ❌ ELIMINADO: 'fecha_nacimiento' ya no existe en el modelo Profesional
+            # 'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
         }
 
 
@@ -121,3 +124,18 @@ class TurnoForm(BaseFormMixin, forms.ModelForm):
             ),
             Submit('submit', 'Guardar Turno', css_class='btn-success')
         )
+
+# ⭐ FORMULARIO PARA GESTIÓN DE ESTADO DE TURNO ⭐
+
+
+class TurnoEstadoForm(BaseFormMixin, forms.ModelForm):
+    """Formulario para actualizar solo el estado de un turno."""
+    class Meta:
+        model = Turno
+        fields = ['estado']
+        widgets = {
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+# ❌ ELIMINADO: Todo el bloque de PrescripcionLentesForm
+# class PrescripcionLentesForm(forms.ModelForm): (...)

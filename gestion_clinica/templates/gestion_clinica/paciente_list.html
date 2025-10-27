@@ -5,24 +5,26 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">Pacientes Registrados</h1>
-    <a href="{% url 'pacientes:crear_paciente' %}" class="btn btn-success">
+    {# URL CORREGIDA: 'pacientes:crear_paciente' -> 'gestion_clinica:crear_paciente' #}
+    <a href="{% url 'gestion_clinica:crear_paciente' %}" class="btn btn-success">
         <i class="fas fa-plus-circle me-1"></i> Nuevo Paciente
     </a>
 </div>
 
 <div class="row mb-4">
     <div class="col-12">
-        <form method="GET" class="d-flex" action="{% url 'pacientes:lista_pacientes' %}">
+        {# URL CORREGIDA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
+        <form method="GET" class="d-flex" action="{% url 'gestion_clinica:lista_pacientes' %}">
             <input class="form-control me-2" 
-                   type="search" 
-                   placeholder="Buscar por DNI, Nombre, Apellido o N° Registro" 
-                   aria-label="Search" 
-                   name="q"
-                   value="{{ query }}">
+                    type="search" 
+                    placeholder="Buscar por DNI, Nombre, Apellido o N° Registro" 
+                    aria-label="Search" 
+                    name="q"
+                    value="{{ query }}">
             <button class="btn btn-outline-success" type="submit"><i class="fas fa-search"></i> Buscar</button>
             {% if query %}
-            {# Botón Limpiar solo aparece si hay un filtro activo #}
-            <a href="{% url 'pacientes:lista_pacientes' %}" class="btn btn-outline-danger ms-2"><i class="fas fa-times"></i> Limpiar</a>
+            {# URL CORREGIDA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
+            <a href="{% url 'gestion_clinica:lista_pacientes' %}" class="btn btn-outline-danger ms-2"><i class="fas fa-times"></i> Limpiar</a>
             {% endif %}
         </form>
     </div>
@@ -42,15 +44,19 @@
         </thead>
         <tbody>
             {% for paciente in pacientes %}
-            <tr data-href="{% url 'pacientes:detalle_paciente' pk=paciente.pk %}" style="cursor: pointer;">
+            {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
+            <tr data-href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" style="cursor: pointer;">
                 <td>{{ paciente.num_registro }}</td>
-                <td><a href="{% url 'pacientes:detalle_paciente' pk=paciente.pk %}" class="text-decoration-none fw-bold">{{ paciente.apellido }}, {{ paciente.nombre }}</a></td>
+                {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
+                <td><a href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" class="text-decoration-none fw-bold">{{ paciente.apellido }}, {{ paciente.nombre }}</a></td>
                 <td>{{ paciente.dni }}</td>
                 <td>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</td>
                 <td>{{ paciente.obra_social|default:"N/A" }}</td>
                 <td>
-                    <a href="{% url 'pacientes:detalle_paciente' pk=paciente.pk %}" class="btn btn-sm btn-info text-white me-2"><i class="fas fa-eye"></i> Detalle</a>
-                    <a href="{% url 'pacientes:editar_paciente' pk=paciente.pk %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                    {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
+                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" class="btn btn-sm btn-info text-white me-2"><i class="fas fa-eye"></i> Detalle</a>
+                    {# URL CORREGIDA: 'pacientes:editar_paciente' -> 'gestion_clinica:editar_paciente' #}
+                    <a href="{% url 'gestion_clinica:editar_paciente' pk=paciente.pk %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
                 </td>
             </tr>
             {% endfor %}
@@ -62,7 +68,8 @@
 <div class="alert alert-info" role="alert">
     No hay pacientes registrados en el sistema. ¡Empieza creando uno!
     {% if query %}
-    <p class="mb-0 mt-2">La búsqueda '{{ query }}' no arrojó resultados. <a href="{% url 'pacientes:lista_pacientes' %}" class="alert-link">Ver lista completa.</a></p>
+    {# URL CORREGIDA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
+    <p class="mb-0 mt-2">La búsqueda '{{ query }}' no arrojó resultados. <a href="{% url 'gestion_clinica:lista_pacientes' %}" class="alert-link">Ver lista completa.</a></p>
     {% endif %}
 </div>
 {% endif %}

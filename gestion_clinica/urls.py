@@ -1,53 +1,72 @@
-from django.urls import path
-from .views import (
-    DashboardView,
-    PacienteListView, PacienteDetailView, PacienteCreateView, PacienteUpdateView,
-    HistoriaClinicaCreateView, HistoriaClinicaUpdateView,
-    ExamenOftalmologicoFirstCreateView,
-    ExamenOftalmologicoUpdateView,
-    ProfesionalCreateView, ObraSocialCreateView,
-    TurnoListView, TurnoCreateView,
-    TurnosJsonView,
-    TurnoDetailView,  # <--- NUEVA VISTA IMPORTADA
-)
+# gestion_clinica/urls.py
 
-app_name = 'pacientes'
+from django.urls import path
+from . import views  # <--- Importación Simplificada
+
+# 1. Refactorización de URLs y Nombres de Apps
+# A. Renombrar el app_name para coincidir con el nombre real de la aplicación (gestion_clinica)
+app_name = 'gestion_clinica'
 
 urlpatterns = [
     # --- Rutas de Gestión Principal (Raíz de la app: /pacientes/) ---
-    path('', DashboardView.as_view(), name='dashboard'),
+    # 3. Limpieza de Imports: Se usa views.DashboardView.as_view()
+    path('', views.DashboardView.as_view(), name='dashboard'),
 
-    # --- Rutas de Pacientes (Quitamos el prefijo 'pacientes/') ---
-    path('lista/', PacienteListView.as_view(), name='lista_pacientes'),
-    path('nuevo/', PacienteCreateView.as_view(), name='crear_paciente'),
-    path('<int:pk>/', PacienteDetailView.as_view(),
+    # --- Rutas de Pacientes (CREATE, READ, UPDATE de DATOS FILIATORIOS - PERMITIDO EDITAR) ---
+    path('lista/', views.PacienteListView.as_view(), name='lista_pacientes'),
+    path('nuevo/', views.PacienteCreateView.as_view(), name='crear_paciente'),
+    path('<int:pk>/', views.PacienteDetailView.as_view(),
          name='detalle_paciente'),
     path('<int:pk>/editar/',
-         PacienteUpdateView.as_view(), name='editar_paciente'),
+         views.PacienteUpdateView.as_view(), name='editar_paciente'),
 
-    # --- Rutas de Historia Clínica y Examen (Quitamos el prefijo 'pacientes/') ---
+    # --- Rutas de HISTORIA CLÍNICA y EXAMEN: SOLO CREATE y READ (INMUTABLES) ---
+
+    # RUTA DE CREACIÓN DE NUEVA CONSULTA (HC y EO inicial)
     path('<int:paciente_pk>/hc/nuevo/',
-         ExamenOftalmologicoFirstCreateView.as_view(), name='crear_historia_clinica'),
+         views.ExamenOftalmologicoFirstCreateView.as_view(), name='crear_historia_clinica'),
 
-    path('hc/<int:pk>/editar/', HistoriaClinicaUpdateView.as_view(),
-         name='editar_historia_clinica'),
-    path('hc/<int:hc_pk>/examen/editar/', ExamenOftalmologicoUpdateView.as_view(),
-         name='editar_examen_oftalmologico'),
+    # ❌ RUTA DE EDICIÓN DE HISTORIA CLÍNICA ELIMINADA (Principio de Inmutabilidad)
+    # path('hc/<int:pk>/editar/', views.HistoriaClinicaUpdateView.as_view(), name='editar_historia_clinica'),
 
-    # --- Rutas de Catálogo ---
-    path('profesionales/nuevo/', ProfesionalCreateView.as_view(),
+    # ⭐ RUTAS LECTURA (READ) PARA EXAMEN OFTALMOLÓGICO ⭐
+    path('hc/<int:hc_pk>/examen/ver/',
+         views.ExamenOftalmologicoDetailView.as_view(), name='detalle_examen_oftalmologico'),
+
+    # ❌ RUTAS ELIMINADAS (Mantenidas como referencia comentada)
+    # path('hc/<int:hc_pk>/examen/editar/', views.ExamenOftalmologicoUpdateView.as_view(), name='editar_examen_oftalmologico'),
+    # path('hc/<int:hc_pk>/examen/anular/', views.ExamenOftalmologicoAnularView.as_view(), name='anular_examen_oftalmologico'),
+    # ----------------------------------------------------------------------
+
+    # =================================================================
+    # ❌ ELIMINADAS: RUTAS PRESCRIPCIÓN DE LENTES (Mantenidas como referencia comentada)
+    # =================================================================
+    # path(
+    #     '<int:paciente_pk>/prescripciones/crear/',
+    #     views.PrescripcionLentesCreateView.as_view(),
+    #     name='crear_prescripcion_lentes'
+    # ),
+    # path(
+    #     '<int:paciente_pk>/prescripciones/',
+    #     views.PrescripcionLentesListView.as_view(),
+    #     name='lista_prescripcion_lentes'
+    # ),
+    # =================================================================
+
+    # --- Rutas de Catálogo y Turnos ---
+    path('profesionales/nuevo/', views.ProfesionalCreateView.as_view(),
          name='crear_profesional'),
-    path('obrasocial/nuevo/', ObraSocialCreateView.as_view(),
+    path('obrasocial/nuevo/', views.ObraSocialCreateView.as_view(),
          name='crear_obra_social'),
 
     # ⭐ RUTAS DE TURNOS ⭐
-    path('turnos/', TurnoListView.as_view(), name='lista_turnos'),
-    path('turnos/nuevo/', TurnoCreateView.as_view(), name='crear_turno'),
+    path('turnos/', views.TurnoListView.as_view(), name='lista_turnos'),
+    path('turnos/nuevo/', views.TurnoCreateView.as_view(), name='crear_turno'),
 
-    # ⭐ AÑADIDA: RUTA DE DETALLE DE TURNO (SOLUCIÓN AL ERROR 500) ⭐
+    # RUTA DE DETALLE DE TURNO
     path('turnos/<int:pk>/detalle/',
-         TurnoDetailView.as_view(), name='detalle_turno'),
+         views.TurnoDetailView.as_view(), name='detalle_turno'),
 
-    # ⭐ URL para el API de FullCalendar ⭐
-    path('turnos/api/json/', TurnosJsonView.as_view(), name='turnos_json_api'),
+    # URL para el API de FullCalendar
+    path('turnos/api/json/', views.TurnosJsonView.as_view(), name='turnos_json_api'),
 ]

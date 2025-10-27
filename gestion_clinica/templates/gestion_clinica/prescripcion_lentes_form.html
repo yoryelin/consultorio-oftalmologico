@@ -1,0 +1,42 @@
+{% extends "gestion_clinica/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Nueva Prescripción | {{ paciente.apellido }}, {{ paciente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'pacientes:dashboard' %}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'pacientes:lista_pacientes' %}">Pacientes</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'pacientes:detalle_paciente' pk=paciente.pk %}">{{ paciente }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Crear Receta</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h5 class="m-0 font-weight-bold text-primary">
+            Nueva Prescripción de Lentes para: {{ paciente.apellido }}, {{ paciente.nombre }}
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            {# Renderiza el formulario usando el helper de Crispy Forms #}
+            {{ form|crispy }}
+            
+            <a href="{% url 'pacientes:detalle_paciente' pk=paciente.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Prescripción
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

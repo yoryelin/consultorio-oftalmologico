@@ -1,0 +1,77 @@
+{% extends "gestion_clinica/base.html" %}
+{% load crispy_forms_tags %} {# ⭐ ESTO ES CRÍTICO PARA QUE EL FORMULARIO SE VEA BIEN ⭐ #}
+
+{% block title %}Detalle y Gestión de Turno{% endblock title %}
+
+{% block title_heading %}Turno: {{ turno.paciente.apellido }}, {{ turno.paciente.nombre }} ({{ turno.fecha_hora|date:"d/m/Y H:i" }}){% endblock title_heading %}
+
+{% block content %}
+
+<div class="row">
+    {# Columna Izquierda: Información del Turno y Paciente #}
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-calendar-alt me-2"></i> Detalles del Turno
+            </div>
+            <div class="card-body">
+                
+                <h5 class="text-primary mb-3">Información del Paciente</h5>
+                <p>
+                    <strong>Paciente:</strong> 
+                    {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
+                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" class="fw-bold">
+                        {{ paciente.apellido }}, {{ paciente.nombre }} 
+                    </a>
+                    ({{ paciente.num_documento }})
+                </p>
+                <p><strong>Obra Social:</strong> {{ paciente.obra_social|default:"N/A" }}</p>
+
+                <hr>
+
+                <h5 class="text-primary mb-3">Datos de la Consulta</h5>
+                <p><strong>Fecha y Hora:</strong> {{ turno.fecha_hora|date:"l, d/m/Y H:i" }}</p>
+                <p><strong>Profesional:</strong> {{ turno.profesional }}</p>
+                <p><strong>Motivo de Consulta:</strong> {{ turno.motivo_consulta|default:"No especificado" }}</p>
+                <p><strong>Notas:</strong> {{ turno.notas|default:"-" }}</p>
+                <p>
+                    <strong>Estado Actual:</strong> 
+                    <span class="badge bg-{{ turno.estado|lower|slugify }} fs-6">
+                        {{ turno.get_estado_display }}
+                    </span>
+                </p>
+
+                <div class="mt-4">
+                    {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
+                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-circle me-1"></i> Ver Historia Clínica
+                    </a>
+                    {# URL CORREGIDA: 'pacientes:lista_turnos' -> 'gestion_clinica:lista_turnos' #}
+                    <a href="{% url 'gestion_clinica:lista_turnos' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-calendar-check me-1"></i> Volver a la Agenda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Columna Derecha: Formulario de Gestión de Estado #}
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-edit me-2"></i> Actualizar Estado del Turno
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-success w-100 mt-3">
+                        Guardar Cambio de Estado
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

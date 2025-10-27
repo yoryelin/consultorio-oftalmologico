@@ -1,0 +1,56 @@
+{% extends "gestion_clinica/base.html" %}
+{% block title %}Detalle E.O. | {{ examen.historia_clinica.paciente }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'pacientes:dashboard' %}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'pacientes:detalle_paciente' pk=examen.historia_clinica.paciente.pk %}">{{ examen.historia_clinica.paciente }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Examen Oftalmológico</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h5 class="m-0 font-weight-bold text-primary">
+            Registro de Examen Oftalmológico (Consulta del {{ examen.historia_clinica.fecha|date:"d/m/Y" }})
+            
+            {# ❌ Se elimina el indicador de ANULADO (is_active) y el badge, ya que los registros son INMUTABLES y no se anulan #}
+        </h5>
+        
+        {# ❌ BLOQUE ELIMINADO: Se elimina el div que contenía los botones de EDITAR y ANULAR. #}
+        
+    </div>
+    <div class="card-body">
+        
+        {# ❌ BLOQUE ELIMINADO: Se elimina la alerta de Anulado, ya que no hay registros anulados/inactivos. #}
+        
+        <h6 class="text-secondary mb-3">Datos de Agudeza Visual y Presión Intraocular</h6>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>Agudeza Visual OD:</strong> {{ examen.agudeza_visual_od|default:"N/A" }}</p>
+                <p><strong>Agudeza Visual OI:</strong> {{ examen.agudeza_visual_oi|default:"N/A" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>PIO OD:</strong> {{ examen.pio_od|default:"N/A" }}</p>
+                <p><strong>PIO OI:</strong> {{ examen.pio_oi|default:"N/A" }}</p>
+            </div>
+        </div>
+
+        <h6 class="text-secondary mb-3">Observaciones</h6>
+        <p><strong>Biomicroscopía:</strong> {{ examen.biomicroscopia|default:"Sin datos"|linebreaksbr }}</p>
+        <p><strong>Fondo de Ojo:</strong> {{ examen.fondo_ojo|default:"Sin datos"|linebreaksbr }}</p>
+        <p><strong>Observaciones Adicionales:</strong> {{ examen.observaciones|default:"Sin observaciones"|linebreaksbr }}</p>
+
+    </div>
+    <div class="card-footer text-end">
+        <a href="{% url 'pacientes:detalle_paciente' pk=examen.historia_clinica.paciente.pk %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Paciente
+        </a>
+    </div>
+</div>
+{% endblock %}

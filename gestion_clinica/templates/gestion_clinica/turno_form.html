@@ -19,7 +19,8 @@
             <h3>{% if form.instance.pk %}Edición de Turno{% else %}Asignación de Cita{% endif %}</h3>
             
             {% if not form.instance.pk %}
-            <a href="{% url 'pacientes:crear_paciente' %}" class="btn btn-primary">
+            {# URL CORREGIDA: 'pacientes:crear_paciente' -> 'gestion_clinica:crear_paciente' #}
+            <a href="{% url 'gestion_clinica:crear_paciente' %}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Registrar Nuevo Paciente (Primera Consulta)
             </a>
             {% endif %}
@@ -46,7 +47,8 @@
                                 <div class="flex-grow-1 me-2">
                                     {{ form.paciente|as_crispy_field }}
                                 </div>
-                                <a href="{% url 'pacientes:crear_obra_social' %}" class="btn btn-secondary mb-3" 
+                                {# URL CORREGIDA: 'pacientes:crear_obra_social' -> 'gestion_clinica:crear_obra_social' #}
+                                <a href="{% url 'gestion_clinica:crear_obra_social' %}" class="btn btn-secondary mb-3" 
                                     title="Registrar nueva Obra Social">
                                     <i class="fas fa-plus"></i> OS
                                 </a>
@@ -71,7 +73,8 @@
                     <hr>
 
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'pacientes:lista_turnos' %}" class="btn btn-secondary">
+                        {# URL CORREGIDA: 'pacientes:lista_turnos' -> 'gestion_clinica:lista_turnos' #}
+                        <a href="{% url 'gestion_clinica:lista_turnos' %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-success">

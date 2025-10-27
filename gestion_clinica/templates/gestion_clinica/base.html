@@ -19,15 +19,19 @@
         <div id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse p-0">
             {% comment %} (Contenido omitido por brevedad, pero debe mantenerse completo) {% endcomment %}
             <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark min-vh-100">
-                <a href="{% url 'pacientes:dashboard' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                
+                {# URL CORREGIDA: 'pacientes:dashboard' -> 'gestion_clinica:dashboard' #}
+                <a href="{% url 'gestion_clinica:dashboard' %}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                     <span class="fs-4">OPTIGESTIÓN</span>
                 </a>
                 <hr>
                 
                 <ul class="nav flex-column mb-auto">
                     <li class="nav-item">
+                        {# URL CORREGIDA: 'pacientes:dashboard' -> 'gestion_clinica:dashboard' #}
+                        {# Nota: Si la app se renombra, el slice de request.path podría necesitar ajuste. Por ahora, se asume que la URL base sigue siendo /pacientes o equivalente. #}
                         <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' %}active bg-secondary{% endif %}" 
-                           href="{% url 'pacientes:dashboard' %}">
+                            href="{% url 'gestion_clinica:dashboard' %}">
                             <i class="fas fa-home me-2"></i> Dashboard
                         </a>
                     </li>
@@ -35,15 +39,17 @@
                     <li class="nav-header mt-3 text-white-50">Gestión Clínica</li>
 
                     <li class="nav-item">
+                        {# URL CORREGIDA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
                         <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' and request.path|slice:"11:15" != 'turn' %}active bg-secondary{% endif %}" 
-                           href="{% url 'pacientes:lista_pacientes' %}">
+                            href="{% url 'gestion_clinica:lista_pacientes' %}">
                             <i class="fas fa-users me-2"></i> Pacientes
                         </a>
                     </li>
 
                     <li class="nav-item">
+                        {# URL CORREGIDA: 'pacientes:lista_turnos' -> 'gestion_clinica:lista_turnos' #}
                         <a class="nav-link text-white {% if 'turnos' in request.path %}active bg-secondary{% endif %}" 
-                           href="{% url 'pacientes:lista_turnos' %}">
+                            href="{% url 'gestion_clinica:lista_turnos' %}">
                             <i class="fas fa-calendar-alt me-2"></i> Turnos
                         </a>
                     </li>
@@ -82,6 +88,18 @@
                     </button>
                 </div>
             </div>
+            
+            {# Agregamos el manejo de mensajes de éxito (SuccessMessageMixin) #}
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-1"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             {% block content %}
             {% endblock content %}

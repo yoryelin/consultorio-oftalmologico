@@ -37,8 +37,8 @@
         {% endfor %}
 
         <div class="d-flex justify-content-end mt-4">
-            {# Botón de Cancelar: Redirige a la lista de pacientes o al detalle si estamos editando #}
-            <a href="{% url 'pacientes:lista_pacientes' %}" class="btn btn-secondary me-2">Cancelar</a>
+            {# URL CORREGIDA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
+            <a href="{% url 'gestion_clinica:lista_pacientes' %}" class="btn btn-secondary me-2">Cancelar</a>
             
             <button type="submit" class="btn btn-success">
                 {% if object %}Actualizar Paciente{% else %}Guardar Paciente{% endif %}

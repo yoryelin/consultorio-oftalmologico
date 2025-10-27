@@ -1,9 +1,12 @@
+# gestion_clinica/models.py
+
 from django.db import models
 from django.urls import reverse
 from django.utils.crypto import get_random_string
 from datetime import date
-# ⭐ IMPORTACIÓN AÑADIDA para el campo fecha_hora en Turno ⭐
 from django.utils import timezone
+# ❌ ELIMINADA: Importación de validadores ya no es necesaria
+# from django.core.validators import MinValueValidator, MaxValueValidator
 
 # --- Catálogos ---
 
@@ -62,6 +65,9 @@ class Paciente(models.Model):
     num_afiliado = models.CharField(max_length=50, blank=True, null=True)
     antecedentes_sistemicos = models.TextField(
         blank=True, verbose_name="Antecedentes Sistémicos")
+    # Agregué este campo que faltaba en el Paciente
+    antecedentes_oftalmologicos = models.TextField(
+        blank=True, verbose_name="Antecedentes Oftalmológicos")
 
     # MÉTODO DE CÁLCULO DE EDAD
     @property
@@ -130,11 +136,18 @@ class ExamenOftalmologico(models.Model):
     observaciones = models.TextField(
         blank=True, verbose_name='Observaciones del Examen')
 
+    # ❌ ELIMINADO: Campos de Soft Delete (is_active y fecha_anulacion)
+    # is_active = models.BooleanField(default=True, verbose_name='Activo')
+    # fecha_anulacion = models.DateTimeField(
+    #     null=True, blank=True, verbose_name='Fecha de Anulación')
+
     def __str__(self):
+        # ❌ MODIFICADA: Eliminamos referencia a is_active en __str__
         return f'Examen para HC: {self.historia_clinica}'
 
     def get_absolute_url(self):
-        return reverse('pacientes:detalle_paciente', kwargs={'pk': self.historia_clinica.paciente.pk})
+        # Ahora redirigimos al detalle del E.O.
+        return reverse('pacientes:detalle_examen_oftalmologico', kwargs={'hc_pk': self.historia_clinica.pk})
 
     class Meta:
         verbose_name = "Examen Oftalmológico"
@@ -183,3 +196,10 @@ class Turno(models.Model):
 
     def __str__(self):
         return f"Turno {self.estado} - {self.fecha_hora.strftime('%d/%m/%Y %H:%M')} - {self.paciente.apellido}"
+
+
+# =================================================================
+# ❌ ELIMINADO: Todo el bloque de Prescripción de Lentes
+# =================================================================
+# TIPO_LENTE_CHOICES = (...)
+# class PrescripcionLentes(models.Model): (...)
