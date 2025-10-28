@@ -26,7 +26,8 @@
                 </div>
             </div>
             <div class="card-footer bg-light border-primary border-3 border-top-0">
-                <a href="{% url 'pacientes:lista_pacientes' %}" class="small text-primary text-decoration-none">Ver todos los pacientes</a>
+                {# CORRECCIÓN APLICADA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
+                <a href="{% url 'gestion_clinica:lista_pacientes' %}" class="small text-primary text-decoration-none">Ver todos los pacientes</a>
             </div>
         </div>
     </div>

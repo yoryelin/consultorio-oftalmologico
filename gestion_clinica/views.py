@@ -16,6 +16,9 @@ from django.db import transaction
 # ⭐ NUEVAS IMPORTACIONES para la vista JSON de Turnos ⭐
 from django.http import JsonResponse, Http404
 
+# ⭐ IMPORTACIÓN NECESARIA PARA FILTROS OR (Q objects) ⭐
+from django.db.models import Q
+
 from .models import (
     Paciente, HistoriaClinica, ExamenOftalmologico, Profesional, ObraSocial, Turno,
     # ❌ ELIMINADA: PrescripcionLentes ya no se importa
@@ -60,6 +63,21 @@ class PacienteListView(LoginRequiredMixin, ListView):
     template_name = 'gestion_clinica/paciente_list.html'
     context_object_name = 'pacientes'
     paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # 1. Obtener el término de búsqueda, asumiendo que el campo en el template es 'q'.
+        query = self.request.GET.get('q')
+
+        if query:
+            # 2. Aplicar el filtro de búsqueda OR en DNI y Apellido (insensible a mayúsculas)
+            queryset = queryset.filter(
+                Q(dni__icontains=query) |
+                Q(apellido__icontains=query)
+            ).distinct()  # Evita resultados duplicados
+
+        return queryset
 
 
 class PacienteDetailView(LoginRequiredMixin, DetailView):
