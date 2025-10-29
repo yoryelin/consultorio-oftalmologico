@@ -1,5 +1,5 @@
 {% extends "gestion_clinica/base.html" %}
-{% load crispy_forms_tags %} {# ⭐ ESTO ES CRÍTICO PARA QUE EL FORMULARIO SE VEA BIEN ⭐ #}
+{% load crispy_forms_tags %} 
 
 {% block title %}Detalle y Gestión de Turno{% endblock title %}
 
@@ -19,13 +19,14 @@
                 <h5 class="text-primary mb-3">Información del Paciente</h5>
                 <p>
                     <strong>Paciente:</strong> 
-                    {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
-                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" class="fw-bold">
-                        {{ paciente.apellido }}, {{ paciente.nombre }} 
+                    {# ⭐ CORREGIDO: Se accede al PK a través de turno.paciente ⭐ #}
+                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=turno.paciente.pk %}" class="fw-bold">
+                        {{ turno.paciente.apellido }}, {{ turno.paciente.nombre }} 
                     </a>
-                    ({{ paciente.num_documento }})
+                    ({{ turno.paciente.dni }}) 
+                    {# El campo era 'dni' en el modelo que trabajamos, no 'num_documento' #}
                 </p>
-                <p><strong>Obra Social:</strong> {{ paciente.obra_social|default:"N/A" }}</p>
+                <p><strong>Obra Social:</strong> {{ turno.paciente.obra_social|default:"N/A" }}</p>
 
                 <hr>
 
@@ -42,8 +43,8 @@
                 </p>
 
                 <div class="mt-4">
-                    {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
-                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=paciente.pk %}" class="btn btn-outline-primary">
+                    {# ⭐ CORREGIDO: Se accede al PK a través de turno.paciente ⭐ #}
+                    <a href="{% url 'gestion_clinica:detalle_paciente' pk=turno.paciente.pk %}" class="btn btn-outline-primary">
                         <i class="fas fa-user-circle me-1"></i> Ver Historia Clínica
                     </a>
                     {# URL CORREGIDA: 'pacientes:lista_turnos' -> 'gestion_clinica:lista_turnos' #}
@@ -66,7 +67,7 @@
                     {% csrf_token %}
                     {{ form|crispy }}
                     <button type="submit" class="btn btn-success w-100 mt-3">
-                        Guardar Cambio de Estado
+                        <i class="fas fa-save me-1"></i> Guardar Cambio de Estado
                     </button>
                 </form>
             </div>

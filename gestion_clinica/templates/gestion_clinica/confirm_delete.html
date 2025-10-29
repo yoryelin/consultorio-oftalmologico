@@ -1,0 +1,35 @@
+{% extends "gestion_clinica/base.html" %}
+{% load static %}
+{% block title %}Confirmar Eliminación{% endblock title %}
+
+{% block title_heading %}Eliminar Registro{% endblock title_heading %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Confirmar Eliminación</h5>
+            </div>
+            <div class="card-body">
+                {# 'object' es la variable que Django pasa a DeleteView #}
+                <p>¿Estás seguro de que deseas eliminar a <strong>{{ object }}</strong>?</p>
+                <p class="text-danger">Esta acción es irreversible y podría afectar otros registros que dependen de este.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between mt-4">
+                        {# Enlace que usa javascript para volver a la página anterior #}
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-1"></i> Confirmar Eliminación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -17,7 +17,6 @@
     <div class="row min-vh-100">
         
         <div id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse p-0">
-            {% comment %} (Contenido omitido por brevedad, pero debe mantenerse completo) {% endcomment %}
             <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark min-vh-100">
                 
                 {# URL CORREGIDA: 'pacientes:dashboard' -> 'gestion_clinica:dashboard' #}
@@ -28,8 +27,6 @@
                 
                 <ul class="nav flex-column mb-auto">
                     <li class="nav-item">
-                        {# URL CORREGIDA: 'pacientes:dashboard' -> 'gestion_clinica:dashboard' #}
-                        {# Nota: Si la app se renombra, el slice de request.path podría necesitar ajuste. Por ahora, se asume que la URL base sigue siendo /pacientes o equivalente. #}
                         <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' %}active bg-secondary{% endif %}" 
                             href="{% url 'gestion_clinica:dashboard' %}">
                             <i class="fas fa-home me-2"></i> Dashboard
@@ -39,7 +36,6 @@
                     <li class="nav-header mt-3 text-white-50">Gestión Clínica</li>
 
                     <li class="nav-item">
-                        {# URL CORREGIDA: 'pacientes:lista_pacientes' -> 'gestion_clinica:lista_pacientes' #}
                         <a class="nav-link text-white {% if request.path|slice:":10" == '/pacientes' and request.path|slice:"11:15" != 'turn' %}active bg-secondary{% endif %}" 
                             href="{% url 'gestion_clinica:lista_pacientes' %}">
                             <i class="fas fa-users me-2"></i> Pacientes
@@ -47,7 +43,6 @@
                     </li>
 
                     <li class="nav-item">
-                        {# URL CORREGIDA: 'pacientes:lista_turnos' -> 'gestion_clinica:lista_turnos' #}
                         <a class="nav-link text-white {% if 'turnos' in request.path %}active bg-secondary{% endif %}" 
                             href="{% url 'gestion_clinica:lista_turnos' %}">
                             <i class="fas fa-calendar-alt me-2"></i> Turnos
@@ -57,8 +52,22 @@
                     <li class="nav-header mt-3 text-white-50">Administración</li>
                     
                     <li class="nav-item">
+                        <a class="nav-link text-white {% if 'profesionales' in request.path %}active bg-secondary{% endif %}" 
+                           href="{% url 'gestion_clinica:lista_profesionales' %}">
+                            <i class="fas fa-user-md me-2"></i> Profesionales
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if 'obras-sociales' in request.path %}active bg-secondary{% endif %}" 
+                           href="{% url 'gestion_clinica:lista_obras_sociales' %}">
+                            <i class="fas fa-notes-medical me-2"></i> Obras Sociales
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'admin:index' %}">
-                            <i class="fas fa-cog me-2"></i> Administración
+                            <i class="fas fa-cog me-2"></i> Configuración
                         </a>
                     </li>
                     

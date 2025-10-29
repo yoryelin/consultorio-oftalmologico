@@ -1,3 +1,4 @@
+
 # core/urls.py
 
 from django.contrib import admin
@@ -15,6 +16,8 @@ urlpatterns = [
 
     # 2. URLs de la aplicación 'gestion_clinica' (Pacientes, Turnos, etc.)
     # ⭐ CORRECCIÓN CLAVE: Prefijamos TODAS las rutas de la app con 'pacientes/'
-    # Esto soluciona la inconsistencia en el log de Django.
-    path('pacientes/', include('gestion_clinica.urls')),
+    # Específicamente, agregamos el tuple ('gestion_clinica.urls', 'gestion_clinica')
+    # y el argumento 'namespace' para que reverse_lazy('gestion_clinica:...') funcione.
+    path('pacientes/', include(('gestion_clinica.urls',
+         'gestion_clinica'), namespace='gestion_clinica')),
 ]

@@ -1,16 +1,39 @@
+# gestion_clinica/forms.py
+
+from crispy_forms.layout import Layout, Fieldset, Submit, Row, Column
+from crispy_forms.helper import FormHelper
 from django import forms
 # AÑADIR PrescripcionLentes al grupo de modelos importados
 from .models import (
     Paciente, HistoriaClinica, Profesional, ObraSocial, ExamenOftalmologico, Turno,
     # ❌ ELIMINADA: PrescripcionLentes ya no se importa
 )
-# ⭐ IMPORTACIÓN DEL MIXIN ⭐
-from .mixins import BaseFormMixin
+# ❌ ELIMINADA: La importación fallida del mixin
+# from .mixins import BaseFormMixin
+
+# ⭐ DEFINICIÓN FUNCIONAL DE BaseFormMixin (INCORPORADA AQUÍ) ⭐
+
+
+class BaseFormMixin:
+    """
+    Mixin para agregar clases CSS de Bootstrap (form-control) a todos
+    los campos del formulario automáticamente.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Recorre todos los campos y añade la clase 'form-control'
+        for field_name, field in self.fields.items():
+            # Evitamos aplicar a checkboxes y radio buttons si es necesario
+            if field_name != 'password' and not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({
+                    'class': 'form-control'
+                })
+# ⭐ FIN DE LA DEFINICIÓN DE BaseFormMixin ⭐
+
 
 # ⭐ IMPORTACIONES PARA CRISPY FORMS ⭐
-from crispy_forms.helper import FormHelper
 # <--- Añadir Row y Column
-from crispy_forms.layout import Layout, Fieldset, Submit, Row, Column
 
 # --------------------------------------------------------------------------
 # Lógica para la escala de Agudeza Visual (AV) en incrementos de 0.25

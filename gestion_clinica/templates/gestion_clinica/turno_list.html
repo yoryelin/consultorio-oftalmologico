@@ -7,134 +7,134 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-end align-items-center mb-4">
-    {# URL CORREGIDA: 'pacientes:crear_turno' -> 'gestion_clinica:crear_turno' #}
-    <a href="{% url 'gestion_clinica:crear_turno' %}" class="btn btn-success">
-        <i class="fas fa-plus-circle me-1"></i> Nuevo Turno
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Listado de Turnos Filtrable</h3>
+    <a href="{% url 'gestion_clinica:crear_turno' %}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i> Agendar Nuevo Turno
     </a>
+</div>
+
+{# ----------------------------------------------------------------- #}
+{# ⭐ FORMULARIO DE FILTROS AÑADIDO ⭐ #}
+{# ----------------------------------------------------------------- #}
+<div class="card shadow mb-4">
+    <div class="card-header bg-light">
+        <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-filter me-1"></i> Filtrar Turnos</h6>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            
+            <div class="col-md-4">
+                <label for="id_fecha" class="form-label">Fecha Específica</label>
+                {# Usamos 'fecha_actual' del contexto de TurnoListView #}
+                <input type="date" class="form-control" id="id_fecha" name="fecha" value="{{ fecha_actual }}">
+            </div>
+
+            <div class="col-md-4">
+                <label for="id_profesional" class="form-label">Profesional</label>
+                {# Usamos 'profesionales' del contexto de TurnoListView #}
+                <select class="form-select" id="id_profesional" name="profesional">
+                    <option value="">-- Todos los Profesionales --</option>
+                    {% for profesional in profesionales %}
+                        {# Usamos 'profesional_actual' del contexto para mantener la selección #}
+                        <option value="{{ profesional.pk }}" {% if profesional.pk|stringformat:"s" == profesional_actual %}selected{% endif %}>
+                            {{ profesional }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="id_estado" class="form-label">Estado</label>
+                {# Usamos 'estados_choices' del contexto de TurnoListView #}
+                <select class="form-select" id="id_estado" name="estado">
+                    <option value="todos">-- Todos los Estados --</option>
+                    {% for key, value in estados_choices %}
+                        {# Usamos 'estado_actual' del contexto para mantener la selección #}
+                        <option value="{{ key }}" {% if key == estado_actual %}selected{% endif %}>
+                            {{ value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary me-2"><i class="fas fa-search me-1"></i> Aplicar Filtros</button>
+                {# Botón para limpiar los filtros #}
+                <a href="{% url 'gestion_clinica:lista_turnos' %}" class="btn btn-outline-secondary"><i class="fas fa-redo me-1"></i> Limpiar Filtros</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 {# Contenedor del Calendario #}
 <div class="mb-4">
+    <h3 class="mb-3">Vista de Calendario</h3>
     <div id='calendar' class="bg-light p-3 border rounded shadow-sm"></div>
 </div>
 <hr>
-<h3 class="mb-3">Listado y Historial</h3>
 
-{# Listado de Turnos #}
+<h3 class="mb-3">Listado de Resultados ({{ turnos.count }} Turnos Encontrados)</h3>
+
+{# ----------------------------------------------------------------- #}
+{# ⭐ LISTADO DE RESULTADOS (Simplificado/Corregido) ⭐ #}
+{# NOTA: Eliminamos la lógica de pestañas para 'próximos'/'pasados' ya que ListView solo devuelve 'turnos' #}
+{# ----------------------------------------------------------------- #}
 <div class="card shadow">
-    <div class="card-header p-0">
-        <ul class="nav nav-tabs" id="turnoTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="proximos-tab" data-bs-toggle="tab" data-bs-target="#proximos" type="button" role="tab" aria-controls="proximos" aria-selected="true">
-                    <i class="fas fa-calendar-check me-1"></i> Próximos Turnos ({{ turnos.count }})
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" aria-controls="historial" aria-selected="false">
-                    <i class="fas fa-history me-1"></i> Historial Reciente ({{ turnos_pasados.count }})
-                </button>
-            </li>
-        </ul>
-    </div>
-    
     <div class="card-body">
-        <div class="tab-content" id="turnoTabsContent">
-            
-            <div class="tab-pane fade show active" id="proximos" role="tabpanel" aria-labelledby="proximos-tab">
-                {% if turnos %}
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th>Fecha y Hora</th>
-                                    <th>Paciente</th>
-                                    <th>Profesional</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for turno in turnos %}
-                                <tr class="
-                                    {% if turno.estado == 'PENDIENTE' %}table-warning{% endif %}
-                                    {% if turno.estado == 'CONFIRMADO' %}table-info{% endif %}
-                                ">
-                                    <td>{{ turno.fecha_hora|date:"d/m/Y H:i" }}</td>
-                                    
-                                    {# URL CORREGIDA: 'pacientes:detalle_paciente' -> 'gestion_clinica:detalle_paciente' #}
-                                    <td>
-                                        <a href="{% url 'gestion_clinica:detalle_paciente' pk=turno.paciente.pk %}">
-                                            {{ turno.paciente.apellido }}, {{ turno.paciente.nombre }} ({{ turno.paciente.num_documento }})
-                                        </a>
-                                    </td>
-                                    
-                                    <td>{{ turno.profesional }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ turno.estado|lower|slugify }}">
-                                            {{ turno.get_estado_display }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {# URL CORREGIDA: 'pacientes:detalle_turno' -> 'gestion_clinica:detalle_turno' #}
-                                        <a href="{% url 'gestion_clinica:detalle_turno' pk=turno.pk %}" class="btn btn-sm btn-info text-white" title="Gestionar Turno">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-info-circle me-1"></i> No hay turnos futuros registrados.
-                    </div>
-                {% endif %}
+        {% if turnos %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Paciente</th>
+                            <th>Profesional</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for turno in turnos %}
+                        <tr class="
+                            {% if turno.estado == 'PENDIENTE' %}table-warning{% endif %}
+                            {% if turno.estado == 'CONFIRMADO' %}table-info{% endif %}
+                        ">
+                            <td>{{ turno.fecha_hora|date:"d/m/Y H:i" }}</td>
+                            
+                            <td>
+                                <a href="{% url 'gestion_clinica:detalle_paciente' pk=turno.paciente.pk %}">
+                                    {{ turno.paciente.apellido }}, {{ turno.paciente.nombre }} ({{ turno.paciente.dni }})
+                                </a>
+                            </td>
+                            
+                            <td>{{ turno.profesional }}</td>
+                            <td>
+                                <span class="badge bg-{{ turno.estado|lower|slugify }}">
+                                    {{ turno.get_estado_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'gestion_clinica:detalle_turno' pk=turno.pk %}" class="btn btn-sm btn-info text-white" title="Gestionar Turno">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
-            {# BLOQUE DE HISTORIAL (No contiene URL, solo un bucle) #}
-            <div class="tab-pane fade" id="historial" role="tabpanel" aria-labelledby="historial-tab">
-                <h5 class="mb-3 text-secondary">Últimos Turnos Atendidos o Cancelados</h5>
-                
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Paciente</th>
-                                <th>Profesional</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for turno in turnos_pasados %}
-                            <tr>
-                                <td>{{ turno.fecha_hora|date:"d/m/Y H:i" }}</td>
-                                <td>{{ turno.paciente.apellido }}, {{ turno.paciente.nombre }}</td>
-                                <td>{{ turno.profesional }}</td>
-                                <td>
-                                    <span class="badge bg-{{ turno.estado|lower|slugify }}">
-                                        {{ turno.get_estado_display }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    <div class="alert alert-warning my-2">
-                                        No hay historial de turnos reciente.
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {# FIN BLOQUE DE HISTORIAL #}
+            {# Aquí puedes añadir la paginación si 'turnos' está paginado #}
+            {% if is_paginated %}
+                {# Código de paginación #}
+            {% endif %}
 
-        </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-1"></i> No se encontraron turnos con los filtros aplicados.
+            </div>
+        {% endif %}
     </div>
 </div>
 
@@ -152,31 +152,27 @@
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 // Configuraciones de idioma y apariencia
                 locale: 'es', 
-                initialView: 'timeGridWeek', // Vista inicial: semana
+                initialView: 'timeGridWeek', 
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                // Zona horaria local (IMPORTANTE para coincidir con Django/DB)
                 timeZone: 'local', 
-                slotMinTime: '08:00:00', // Horario de inicio
-                slotMaxTime: '20:00:00', // Horario de fin
+                slotMinTime: '08:00:00', 
+                slotMaxTime: '20:00:00', 
                 expandRows: true,
-                navLinks: true, // permite hacer clic en los nombres de los días/semanas
-                
-                // Oculta Sábados y Domingos
+                navLinks: true,
                 weekends: false, 
 
                 // FUENTE DE DATOS: Apunta al API JSON.
-                // URL CORREGIDA: 'pacientes:turnos_json_api' -> 'gestion_clinica:turnos_json_api'
                 events: '{% url "gestion_clinica:turnos_json_api" %}', 
 
                 // Función para manejar clics en eventos (redirecciona a detalle)
                 eventClick: function(info) {
                     if (info.event.url) {
                         window.location.href = info.event.url;
-                        return false; // Previene la acción por defecto
+                        return false; 
                     }
                 }
             });

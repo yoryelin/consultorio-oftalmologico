@@ -1,33 +1,32 @@
 {% extends "gestion_clinica/base.html" %}
 {% load crispy_forms_tags %}
 
-{% block title %}Registrar Obra Social{% endblock title %}
+{% block title %}Registrar Profesional{% endblock title %}
 
-{% block title_heading %}Registrar Nueva Obra Social{% endblock title_heading %}
+{% block title_heading %}Registrar Nuevo Profesional{% endblock title_heading %}
 
 {% block content %}
 
 <div class="row justify-content-center">
     <div class="col-lg-6 col-md-8">
         <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Formulario de Obra Social</h5>
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Formulario de Profesional</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     
-                    {# Renderiza todos los campos del formulario de Obra Social #}
+                    {# Renderiza todos los campos del formulario de Profesional #}
                     {{ form|crispy }}
                     
                     <div class="d-flex justify-content-between mt-4">
-                        {# CORRECCIÓN CLAVE: Cambiamos el namespace de 'pacientes' a 'gestion_clinica' #}
-                        <a href="{% url 'gestion_clinica:lista_obras_sociales' %}" class="btn btn-secondary"> 
-                        {# CAMBIO ADICIONAL: Redirigimos a la lista de OS, no a crear turno, para consistencia #}
+                        {# Botón Cancelar redirige a la lista de Profesionales #}
+                        <a href="{% url 'gestion_clinica:lista_profesionales' %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save me-1"></i> Guardar Obra Social
+                            <i class="fas fa-save me-1"></i> Guardar Profesional
                         </button>
                     </div>
                 </form>
