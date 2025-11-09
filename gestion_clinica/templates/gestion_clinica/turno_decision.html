@@ -1,0 +1,54 @@
+{% extends "gestion_clinica/base.html" %}
+{% load static %}
+
+{% block title %}Agendar Turno - Decisión{% endblock title %}
+
+{% block title_heading %}Agendamiento para el {{ fecha_hora }}{% endblock title_heading %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow p-4">
+            <h4 class="mb-4 text-center">Seleccione el tipo de agendamiento</h4>
+
+            <div class="alert alert-info text-center" role="alert">
+                Ha seleccionado agendar un turno para la fecha y hora: 
+                <strong>{{ fecha_hora }}</strong>
+            </div>
+
+            <hr>
+
+            <div class="d-grid gap-2 mb-4">
+                <a href="{{ url_existente }}" class="btn btn-lg btn-success">
+                    <i class="fas fa-search me-2"></i> 
+                    **1. Paciente Existente** (Continuar al Formulario de Turno)
+                </a>
+                <p class="text-muted text-center mt-1">
+                    Le llevará al formulario para seleccionar un paciente ya registrado y confirmar el turno.
+                </p>
+            </div>
+
+            <hr>
+
+            <div class="d-grid gap-2">
+                <a href="{{ url_nuevo_paciente }}" class="btn btn-lg btn-primary">
+                    <i class="fas fa-user-plus me-2"></i> 
+                    **2. Registrar Nuevo Paciente**
+                </a>
+                <p class="text-muted text-center mt-1">
+                    Le llevará al formulario de registro de paciente. Al guardar, el sistema volverá automáticamente a la creación del turno.
+                </p>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'gestion_clinica:lista_turnos' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Volver al Calendario
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
